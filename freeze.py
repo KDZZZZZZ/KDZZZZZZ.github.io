@@ -5,7 +5,7 @@ import shutil
 import sys
 
 # 配置 Freezer
-app.config['FREEZER_DESTINATION'] = 'build'
+app.config['FREEZER_DESTINATION'] = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'build')
 app.config['FREEZER_RELATIVE_URLS'] = True
 app.config['FREEZER_BASE_URL'] = 'https://kdzzzzzz.github.io/'
 
@@ -42,10 +42,11 @@ if __name__ == '__main__':
     print("开始生成静态文件...", file=sys.stderr)
     
     # 清理并创建构建目录
-    if os.path.exists('build'):
-        shutil.rmtree('build')
-    os.makedirs('build')
-    print("构建目录已创建", file=sys.stderr)
+    build_dir = app.config['FREEZER_DESTINATION']
+    if os.path.exists(build_dir):
+        shutil.rmtree(build_dir)
+    os.makedirs(build_dir)
+    print(f"构建目录已创建: {build_dir}", file=sys.stderr)
     
     # 确保数据库存在
     if not os.path.exists('blog.db'):
@@ -53,11 +54,13 @@ if __name__ == '__main__':
         init_db()
     
     # 复制静态文件
-    if os.path.exists('static'):
+    static_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static')
+    if os.path.exists(static_dir):
         print("复制静态文件...", file=sys.stderr)
-        if os.path.exists('build/static'):
-            shutil.rmtree('build/static')
-        shutil.copytree('static', 'build/static')
+        build_static = os.path.join(build_dir, 'static')
+        if os.path.exists(build_static):
+            shutil.rmtree(build_static)
+        shutil.copytree(static_dir, build_static)
     
     # 生成静态文件
     print("生成页面...", file=sys.stderr)
