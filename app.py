@@ -50,15 +50,18 @@ def load_user(user_id):
 
 @app.route('/')
 def index():
-    page = request.args.get('page', 1, type=int)
-    per_page = 5
-    posts = Post.query.order_by(Post.created.desc()).paginate(page=page, per_page=per_page, error_out=False)
+    posts = Post.query.order_by(Post.created.desc()).all()
+    for post in posts:
+        # 只显示文章预览（前200个字符）
+        content = markdown2.markdown(post.content[:200] + '...' if len(post.content) > 200 else post.content)
+        post.preview = content
     return render_template('index.html', posts=posts)
 
 @app.route('/post/<int:post_id>')
 def post(post_id):
     post = Post.query.get_or_404(post_id)
-    content = markdown2.markdown(post.content)
+    # 使用 markdown2 渲染全文，支持代码高亮
+    content = markdown2.markdown(post.content, extras=['fenced-code-blocks', 'tables', 'break-on-newline'])
     return render_template('post.html', post=post, content=content)
 
 @app.route('/create', methods=['GET', 'POST'])
