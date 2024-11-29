@@ -37,14 +37,27 @@ jobs:
       
       - name: Debug environment
         run: |
+          echo "Current directory:"
           pwd
+          echo "\nDirectory contents:"
           ls -la
+          echo "\nPython version:"
           python --version
+          echo "\nInstalled packages:"
           pip list
+      
+      - name: Initialize database
+        run: |
+          echo "Initializing database..."
+          if [ ! -f "blog.db" ]; then
+            python -c "from app import init_db; init_db()"
+          fi
       
       - name: Generate static files
         run: |
+          echo "Generating static files..."
           python freeze.py
+          echo "\nBuild directory contents:"
           ls -la build/
       
       - name: Setup Pages

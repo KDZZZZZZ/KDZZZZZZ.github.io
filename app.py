@@ -10,9 +10,13 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your-secret-key')
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///blog.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# Freezer 配置
 app.config['FREEZER_RELATIVE_URLS'] = True
 app.config['PREFERRED_URL_SCHEME'] = 'https'
-app.config['SERVER_NAME'] = 'kdzzzzzz.github.io'
+app.config['FREEZER_DESTINATION'] = 'build'
+app.config['FREEZER_BASE_URL'] = 'https://kdzzzzzz.github.io/'
+
 db = SQLAlchemy(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
