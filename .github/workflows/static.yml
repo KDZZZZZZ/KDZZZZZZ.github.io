@@ -38,15 +38,26 @@ jobs:
       - name: Initialize database
         run: |
           echo "Initializing database..."
-          python -c "from app import init_db; init_db()"
-          echo "Database initialized."
+          python -c "from app import init_db; init_db()" || { echo "Failed to initialize database"; exit 1; }
+          ls -la blog.db || { echo "Database file not found"; exit 1; }
       
       - name: Generate static files
         run: |
           echo "Generating static files..."
-          python freeze.py
-          echo "Build directory contents:"
-          ls -la build/
+          python -c "
+          import sys
+          from freeze import app, freezer
+          try:
+              freezer.freeze()
+              print('Static files generated successfully')
+          except Exception as e:
+              print(f'Error generating static files: {str(e)}', file=sys.stderr)
+              sys.exit(1)
+          "
+          ls -la build/ || { echo "Build directory not found"; exit 1; }
+      
+      - name: Setup Pages
+        uses: actions/configure-pages@v3
       
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v2
