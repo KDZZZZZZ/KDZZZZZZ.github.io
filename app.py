@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, abort
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from datetime import datetime
@@ -12,6 +12,8 @@ app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:/
 if app.config['SQLALCHEMY_DATABASE_URI'].startswith('postgres://'):
     app.config['SQLALCHEMY_DATABASE_URI'] = app.config['SQLALCHEMY_DATABASE_URI'].replace('postgres://', 'postgresql://', 1)
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['FREEZER_RELATIVE_URLS'] = True
+app.config['PREFERRED_URL_SCHEME'] = 'https'
 db = SQLAlchemy(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
@@ -36,9 +38,7 @@ class Post(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200), nullable=False)
     content = db.Column(db.Text, nullable=False)
-    summary = db.Column(db.String(500))
-    image_url = db.Column(db.String(500))
-    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    created = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
     def __repr__(self):
@@ -49,91 +49,70 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 @app.route('/')
-def home():
+def index():
     page = request.args.get('page', 1, type=int)
-    posts = Post.query.order_by(Post.created_at.desc()).all()  # 先检查是否有文章
-    print(f"找到 {len(posts)} 篇文章")  # 添加调试信息
-    posts_page = Post.query.order_by(Post.created_at.desc()).paginate(page=page, per_page=5)
-    return render_template('home.html', posts=posts_page)
+    per_page = 5
+    posts = Post.query.order_by(Post.created.desc()).paginate(page=page, per_page=per_page, error_out=False)
+    return render_template('index.html', posts=posts)
 
 @app.route('/post/<int:post_id>')
 def post(post_id):
     post = Post.query.get_or_404(post_id)
-    content = markdown2.markdown(post.content)
-    return render_template('post.html', post=post, content=content)
-
-@app.route('/post/<int:post_id>/edit', methods=['GET', 'POST'])
-@login_required
-def edit_post(post_id):
-    post = Post.query.get_or_404(post_id)
-    if post.author != current_user:
-        flash('您没有权限编辑这篇文章')
-        return redirect(url_for('post', post_id=post.id))
-    
-    if request.method == 'POST':
-        post.title = request.form['title']
-        post.content = request.form['content']
-        post.summary = request.form.get('summary', '')
-        post.image_url = request.form.get('image_url', '')
-        
-        db.session.commit()
-        flash('文章已更新', 'success')
-        return redirect(url_for('post', post_id=post.id))
-    
-    return render_template('edit_post.html', post=post)
-
-@app.route('/post/<int:post_id>/delete', methods=['POST'])
-@login_required
-def delete_post(post_id):
-    post = Post.query.get_or_404(post_id)
-    if post.author != current_user:
-        flash('您没有权限删除这篇文章')
-        return redirect(url_for('post', post_id=post.id))
-    
-    db.session.delete(post)
-    db.session.commit()
-    flash('文章已删除', 'success')
-    return redirect(url_for('home'))
+    return render_template('post.html', post=post)
 
 @app.route('/create', methods=['GET', 'POST'])
 @login_required
-def create_post():
+def create():
     if request.method == 'POST':
         title = request.form['title']
         content = request.form['content']
-        summary = request.form.get('summary', '')
-        image_url = request.form.get('image_url', '')
-        
-        post = Post(
-            title=title,
-            content=content,
-            summary=summary,
-            image_url=image_url,
-            author=current_user
-        )
-        
+        post = Post(title=title, content=content, author=current_user)
         db.session.add(post)
         db.session.commit()
-        flash('文章发布成功！', 'success')
-        return redirect(url_for('home'))
-    
+        return redirect(url_for('post', post_id=post.id))
     return render_template('create_post.html')
+
+@app.route('/edit/<int:post_id>', methods=['GET', 'POST'])
+@login_required
+def edit(post_id):
+    post = Post.query.get_or_404(post_id)
+    if post.author != current_user:
+        abort(403)
+    if request.method == 'POST':
+        post.title = request.form['title']
+        post.content = request.form['content']
+        db.session.commit()
+        return redirect(url_for('post', post_id=post.id))
+    return render_template('edit_post.html', post=post)
+
+@app.route('/delete/<int:post_id>', methods=['POST'])
+@login_required
+def delete(post_id):
+    post = Post.query.get_or_404(post_id)
+    if post.author != current_user:
+        abort(403)
+    db.session.delete(post)
+    db.session.commit()
+    return redirect(url_for('index'))
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
     if request.method == 'POST':
-        user = User.query.filter_by(username=request.form['username']).first()
-        if user and user.check_password(request.form['password']):
+        username = request.form['username']
+        password = request.form['password']
+        user = User.query.filter_by(username=username).first()
+        if user and user.check_password(password):
             login_user(user)
-            return redirect(url_for('home'))
-        flash('用户名或密码错误')
+            return redirect(url_for('index'))
+        flash('Invalid username or password')
     return render_template('login.html')
 
 @app.route('/logout')
-@login_required
 def logout():
     logout_user()
-    return redirect(url_for('home'))
+    return redirect(url_for('index'))
 
 def init_db():
     print("正在初始化数据库...")
@@ -159,10 +138,8 @@ def init_db():
                     post = Post(
                         title='欢迎使用个人博客系统！',
                         content=content,
-                        summary='这是一个示例文章，展示了 Markdown 的基本用法和博客系统的主要功能。',
-                        image_url='https://picsum.photos/800/400',
                         author=admin,
-                        created_at=datetime.utcnow()
+                        created=datetime.utcnow()
                     )
                     db.session.add(post)
                     db.session.commit()

@@ -6,7 +6,16 @@ import shutil
 # 配置 Freezer
 app.config['FREEZER_DESTINATION'] = 'build'
 app.config['FREEZER_RELATIVE_URLS'] = True
+app.config['PREFERRED_URL_SCHEME'] = 'https'
 freezer = Freezer(app)
+
+@freezer.register_generator
+def index():
+    # 生成分页页面的 URL
+    posts = Post.query.count()
+    pages = (posts - 1) // 5 + 1
+    for page in range(1, pages + 1):
+        yield {'page': page}
 
 @freezer.register_generator
 def post():
