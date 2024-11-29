@@ -38,7 +38,7 @@ jobs:
       - name: Initialize database
         run: |
           echo "Initializing database..."
-          python -c "from app import init_db; init_db()"
+          python init_db.py
           ls -la blog.db
       
       - name: List current directory
