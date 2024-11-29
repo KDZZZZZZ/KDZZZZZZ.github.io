@@ -35,9 +35,17 @@ jobs:
           pip install -r requirements.txt
           pip install Frozen-Flask
       
+      - name: Debug environment
+        run: |
+          pwd
+          ls -la
+          python --version
+          pip list
+      
       - name: Generate static files
         run: |
           python freeze.py
+          ls -la build/
       
       - name: Setup Pages
         uses: actions/configure-pages@v3
