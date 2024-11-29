@@ -61,7 +61,8 @@ def index():
 @app.route('/post/<int:post_id>')
 def post(post_id):
     post = Post.query.get_or_404(post_id)
-    return render_template('post.html', post=post)
+    content = markdown2.markdown(post.content)
+    return render_template('post.html', post=post, content=content)
 
 @app.route('/create', methods=['GET', 'POST'])
 @login_required
@@ -109,7 +110,7 @@ def login():
         if user and user.check_password(password):
             login_user(user)
             return redirect(url_for('index'))
-        flash('Invalid username or password')
+        flash('用户名或密码错误')
     return render_template('login.html')
 
 @app.route('/logout')

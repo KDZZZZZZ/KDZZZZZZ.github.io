@@ -6,6 +6,7 @@ import shutil
 # 配置 Freezer
 app.config['FREEZER_DESTINATION'] = 'build'
 app.config['FREEZER_RELATIVE_URLS'] = True
+app.config['FREEZER_BASE_URL'] = 'https://kdzzzzzz.github.io/'
 app.config['PREFERRED_URL_SCHEME'] = 'https'
 app.config['SERVER_NAME'] = 'kdzzzzzz.github.io'
 
@@ -29,6 +30,10 @@ def post():
     # 生成所有文章的 URL
     for post in Post.query.all():
         yield {'post_id': post.id}
+
+@freezer.register_generator
+def login():
+    yield {}
 
 @freezer.register_generator
 def static():
@@ -58,5 +63,9 @@ if __name__ == '__main__':
     
     # 生成静态文件
     print("生成页面...")
-    freezer.freeze()
-    print("静态文件生成完成！")
+    try:
+        freezer.freeze()
+        print("静态文件生成完成！")
+    except Exception as e:
+        print(f"生成静态文件时出错: {str(e)}")
+        raise
