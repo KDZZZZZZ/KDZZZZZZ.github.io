@@ -35,33 +35,18 @@ jobs:
           pip install -r requirements.txt
           pip install Frozen-Flask markdown2
       
-      - name: Debug environment
-        run: |
-          echo "Current directory:"
-          pwd
-          echo "\nDirectory contents:"
-          ls -la
-          echo "\nPython version:"
-          python --version
-          echo "\nInstalled packages:"
-          pip list
-      
       - name: Initialize database
         run: |
           echo "Initializing database..."
           python -c "from app import init_db; init_db()"
           echo "Database initialized."
-          ls -la blog.db
       
       - name: Generate static files
         run: |
           echo "Generating static files..."
-          python freeze.py || { echo "Error generating static files"; cat error.log; exit 1; }
-          echo "\nBuild directory contents:"
+          python freeze.py
+          echo "Build directory contents:"
           ls -la build/
-      
-      - name: Setup Pages
-        uses: actions/configure-pages@v3
       
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v2

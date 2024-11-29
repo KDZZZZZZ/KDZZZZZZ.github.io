@@ -4,7 +4,6 @@ from flask_login import LoginManager, UserMixin, login_user, login_required, log
 from datetime import datetime
 import markdown2
 import os
-from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your-secret-key')
@@ -13,8 +12,6 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Freezer 配置
 app.config['FREEZER_RELATIVE_URLS'] = True
-app.config['PREFERRED_URL_SCHEME'] = 'https'
-app.config['FREEZER_DESTINATION'] = 'build'
 app.config['FREEZER_BASE_URL'] = 'https://kdzzzzzz.github.io/'
 
 db = SQLAlchemy(app)

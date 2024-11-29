@@ -7,19 +7,12 @@ import shutil
 app.config['FREEZER_DESTINATION'] = 'build'
 app.config['FREEZER_RELATIVE_URLS'] = True
 app.config['FREEZER_BASE_URL'] = 'https://kdzzzzzz.github.io/'
-app.config['PREFERRED_URL_SCHEME'] = 'https'
-app.config['SERVER_NAME'] = 'kdzzzzzz.github.io'
 
 freezer = Freezer(app)
 
 @freezer.register_generator
 def index():
     yield {}  # 主页
-    # 生成分页页面的 URL
-    posts = Post.query.count()
-    pages = (posts - 1) // 5 + 1
-    for page in range(1, pages + 1):
-        yield {'page': page}
 
 @freezer.register_generator
 def post():
@@ -30,10 +23,6 @@ def post():
     # 生成所有文章的 URL
     for post in Post.query.all():
         yield {'post_id': post.id}
-
-@freezer.register_generator
-def login():
-    yield {}
 
 @freezer.register_generator
 def static():
