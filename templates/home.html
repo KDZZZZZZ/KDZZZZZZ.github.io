@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}主页 - 个人博客{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    {% for post in posts.items %}
+    <article class="bg-white rounded-lg shadow-lg overflow-hidden">
+        {% if post.image_url %}
+        <div class="aspect-w-16 aspect-h-9">
+            <img src="{{ post.image_url }}" alt="{{ post.title }}" class="object-cover w-full h-48">
+        </div>
+        {% endif %}
+        <div class="p-6">
+            <div class="flex items-center mb-4">
+                <div class="text-sm text-gray-600">
+                    {{ post.created_at.strftime('%Y年%m月%d日') }}
+                </div>
+            </div>
+            <h2 class="text-xl font-semibold mb-2">
+                <a href="{{ url_for('post', post_id=post.id) }}" class="text-gray-900 hover:text-indigo-600">
+                    {{ post.title }}
+                </a>
+            </h2>
+            {% if post.summary %}
+            <p class="text-gray-600 mb-4">{{ post.summary }}</p>
+            {% endif %}
+            <div class="flex items-center">
+                <span class="text-sm text-gray-500">作者：{{ post.author.username }}</span>
+                <a href="{{ url_for('post', post_id=post.id) }}" class="ml-auto text-indigo-600 hover:text-indigo-800">
+                    阅读全文 →
+                </a>
+            </div>
+        </div>
+    </article>
+    {% endfor %}
+</div>
+
+<!-- 分页 -->
+<div class="mt-8 flex justify-center">
+    <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="分页">
+        {% if posts.has_prev %}
+        <a href="{{ url_for('home', page=posts.prev_num) }}" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+            上一页
+        </a>
+        {% endif %}
+        
+        {% for page_num in posts.iter_pages(left_edge=2, left_current=2, right_current=2, right_edge=2) %}
+            {% if page_num %}
+                {% if posts.page == page_num %}
+                <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-indigo-50 text-sm font-medium text-indigo-600">
+                    {{ page_num }}
+                </span>
+                {% else %}
+                <a href="{{ url_for('home', page=page_num) }}" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
+                    {{ page_num }}
+                </a>
+                {% endif %}
+            {% else %}
+            <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
+                ...
+            </span>
+            {% endif %}
+        {% endfor %}
+
+        {% if posts.has_next %}
+        <a href="{{ url_for('home', page=posts.next_num) }}" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+            下一页
+        </a>
+        {% endif %}
+    </nav>
+</div>
+{% endblock %}
