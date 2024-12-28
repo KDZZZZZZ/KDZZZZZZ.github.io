@@ -2,17 +2,17 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
     <title>Oops</title>
-    <link>http://localhost:60617/</link>
+    <link>http://localhost:1313/</link>
     <description>Recent content on Oops</description>
     <generator>Hugo -- 0.140.1</generator>
-    <language>zh-cn</language>
+    <language>en-us</language>
     <lastBuildDate>Sat, 28 Dec 2024 20:41:44 +0800</lastBuildDate>
-    <atom:link href="http://localhost:60617/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="http://localhost:1313/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>我的第一篇博客</title>
-      <link>http://localhost:60617/posts/my-first-post/</link>
+      <link>http://localhost:1313/posts/my-first-post/</link>
       <pubDate>Sat, 28 Dec 2024 20:41:44 +0800</pubDate>
-      <guid>http://localhost:60617/posts/my-first-post/</guid>
+      <guid>http://localhost:1313/posts/my-first-post/</guid>
       <description>&lt;h1 id=&#34;欢迎来到我的博客&#34;&gt;欢迎来到我的博客！&lt;/h1&gt;
 &lt;p&gt;这是我用 Hugo 搭建的新博客的第一篇文章。我很高兴能在这里开始分享我的想法和经历。&lt;/p&gt;
 &lt;h2 id=&#34;期待&#34;&gt;期待&lt;/h2&gt;
@@ -20,32 +20,32 @@
     </item>
     <item>
       <title>Hello World</title>
-      <link>http://localhost:60617/posts/hello-world/</link>
+      <link>http://localhost:1313/posts/hello-world/</link>
       <pubDate>Sat, 28 Dec 2024 00:00:00 +0000</pubDate>
-      <guid>http://localhost:60617/posts/hello-world/</guid>
-      <description>&lt;h2 id=&#34;你好世界&#34;&gt;你好，世界！&lt;/h2&gt;
-&lt;p&gt;这是我的第一篇博客文章。在这里，我将分享一些有趣的技术和生活经历。&lt;/p&gt;
-&lt;h3 id=&#34;为什么要写博客&#34;&gt;为什么要写博客？&lt;/h3&gt;
-&lt;p&gt;写博客可以帮助我：&lt;/p&gt;
+      <guid>http://localhost:1313/posts/hello-world/</guid>
+      <description>&lt;h2 id=&#34;hello-world&#34;&gt;Hello, World!&lt;/h2&gt;
+&lt;p&gt;This is my first blog post. Here, I&amp;rsquo;ll share some interesting tech insights and life experiences.&lt;/p&gt;
+&lt;h3 id=&#34;why-start-a-blog&#34;&gt;Why Start a Blog?&lt;/h3&gt;
+&lt;p&gt;Blogging helps me:&lt;/p&gt;
 &lt;ol&gt;
-&lt;li&gt;记录学习过程&lt;/li&gt;
-&lt;li&gt;分享技术心得&lt;/li&gt;
-&lt;li&gt;结识志同道合的朋友&lt;/li&gt;
+&lt;li&gt;Document my learning journey&lt;/li&gt;
+&lt;li&gt;Share technical insights&lt;/li&gt;
+&lt;li&gt;Connect with like-minded people&lt;/li&gt;
 &lt;/ol&gt;
-&lt;h3 id=&#34;未来的计划&#34;&gt;未来的计划&lt;/h3&gt;
-&lt;p&gt;我计划写一些关于：&lt;/p&gt;
+&lt;h3 id=&#34;future-plans&#34;&gt;Future Plans&lt;/h3&gt;
+&lt;p&gt;I plan to write about:&lt;/p&gt;
 &lt;ul&gt;
-&lt;li&gt;编程技术&lt;/li&gt;
-&lt;li&gt;学习经验&lt;/li&gt;
-&lt;li&gt;生活感悟&lt;/li&gt;
+&lt;li&gt;Programming techniques&lt;/li&gt;
+&lt;li&gt;Learning experiences&lt;/li&gt;
+&lt;li&gt;Life reflections&lt;/li&gt;
 &lt;/ul&gt;
-&lt;p&gt;敬请期待！&lt;/p&gt;</description>
+&lt;p&gt;Stay tuned!&lt;/p&gt;</description>
     </item>
     <item>
       <title>关于我</title>
-      <link>http://localhost:60617/about/</link>
+      <link>http://localhost:1313/about/</link>
       <pubDate>Sat, 28 Dec 2024 00:00:00 +0000</pubDate>
-      <guid>http://localhost:60617/about/</guid>
+      <guid>http://localhost:1313/about/</guid>
       <description>&lt;h2 id=&#34;-你好&#34;&gt;👋 你好！&lt;/h2&gt;
 &lt;p&gt;我是 Krislin，这里是我的个人博客。我会在这里分享我的学习经历、技术心得和生活感悟。&lt;/p&gt;
 &lt;h3 id=&#34;-关注领域&#34;&gt;🎯 关注领域&lt;/h3&gt;
@@ -68,7 +68,14 @@
 &lt;/ul&gt;
 &lt;h3 id=&#34;-关于本站&#34;&gt;🎨 关于本站&lt;/h3&gt;
 &lt;p&gt;本站使用 &lt;a href=&#34;https://gohugo.io/&#34;&gt;Hugo&lt;/a&gt; 构建，主题基于 &lt;a href=&#34;https://github.com/adityatelange/hugo-PaperMod&#34;&gt;PaperMod&lt;/a&gt;，部署在 &lt;a href=&#34;https://pages.github.com/&#34;&gt;GitHub Pages&lt;/a&gt; 上。&lt;/p&gt;
-&lt;p&gt;感谢访问我的博客！&lt;/p&gt;</description>
+&lt;p&gt;感谢访问我的博客！&lt;/p&gt;
+&lt;hr&gt;
+&lt;hr&gt;
+&lt;h2 id=&#34;summary-about-me&#34;&gt;title: &amp;ldquo;About Me&amp;rdquo;
+url: &amp;ldquo;/about&amp;rdquo;
+summary: &amp;ldquo;About Me&amp;rdquo;&lt;/h2&gt;
+&lt;h2 id=&#34;about-me&#34;&gt;About Me&lt;/h2&gt;
+&lt;p&gt;Hello! I&amp;rsquo;m Oops, a student at Liaoning University passionate about technology and programming. This blog serves as my digital garden where I document my learning journey and share insights about software development, tech trends, and personal growth.&lt;/p&gt;</description>
     </item>
   </channel>
 </rss>

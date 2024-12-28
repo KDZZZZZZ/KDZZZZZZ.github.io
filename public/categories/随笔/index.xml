@@ -2,17 +2,17 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
     <title>随笔 on Oops</title>
-    <link>http://localhost:60617/categories/%E9%9A%8F%E7%AC%94/</link>
+    <link>http://localhost:59754/categories/%E9%9A%8F%E7%AC%94/</link>
     <description>Recent content in 随笔 on Oops</description>
     <generator>Hugo -- 0.140.1</generator>
-    <language>zh-cn</language>
+    <language>en-us</language>
     <lastBuildDate>Sat, 28 Dec 2024 00:00:00 +0000</lastBuildDate>
-    <atom:link href="http://localhost:60617/categories/%E9%9A%8F%E7%AC%94/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="http://localhost:59754/categories/%E9%9A%8F%E7%AC%94/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Hello World</title>
-      <link>http://localhost:60617/posts/hello-world/</link>
+      <link>http://localhost:59754/posts/hello-world/</link>
       <pubDate>Sat, 28 Dec 2024 00:00:00 +0000</pubDate>
-      <guid>http://localhost:60617/posts/hello-world/</guid>
+      <guid>http://localhost:59754/posts/hello-world/</guid>
       <description>&lt;h2 id=&#34;你好世界&#34;&gt;你好，世界！&lt;/h2&gt;
 &lt;p&gt;这是我的第一篇博客文章。在这里，我将分享一些有趣的技术和生活经历。&lt;/p&gt;
 &lt;h3 id=&#34;为什么要写博客&#34;&gt;为什么要写博客？&lt;/h3&gt;

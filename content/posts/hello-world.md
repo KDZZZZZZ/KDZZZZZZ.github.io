@@ -2,26 +2,26 @@
 title: "Hello World"
 date: 2024-12-28
 draft: false
-tags: ["博客"]
-categories: ["随笔"]
+tags: ["Blog"]
+categories: ["Journal"]
 ---
 
-## 你好，世界！
+## Hello, World!
 
-这是我的第一篇博客文章。在这里，我将分享一些有趣的技术和生活经历。
+This is my first blog post. Here, I'll share some interesting tech insights and life experiences.
 
-### 为什么要写博客？
+### Why Start a Blog?
 
-写博客可以帮助我：
-1. 记录学习过程
-2. 分享技术心得
-3. 结识志同道合的朋友
+Blogging helps me:
+1. Document my learning journey
+2. Share technical insights
+3. Connect with like-minded people
 
-### 未来的计划
+### Future Plans
 
-我计划写一些关于：
-- 编程技术
-- 学习经验
-- 生活感悟
+I plan to write about:
+- Programming techniques
+- Learning experiences
+- Life reflections
 
-敬请期待！
+Stay tuned!

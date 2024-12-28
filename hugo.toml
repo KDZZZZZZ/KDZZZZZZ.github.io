@@ -1,53 +1,53 @@
 baseURL = 'https://KDZZZZZZ.github.io'
-languageCode = 'zh-cn'
-defaultContentLanguage = 'zh'
+languageCode = 'en-us'
+defaultContentLanguage = 'en'
 title = 'Oops'
 theme = 'PaperMod'
 
-# 搜索功能
+# Search functionality
 [outputs]
 home = ["HTML", "RSS", "JSON"]
 
 [params]
   author = "Oops"
-  defaultTheme = "dark"  # 默认使用暗色主题
+  defaultTheme = "dark"  # Default dark theme
   ShowReadingTime = true
-  ShowShareButtons = true
+  ShowShareButtons = false
   ShowPostNavLinks = true
   ShowBreadCrumbs = true
   ShowCodeCopyButtons = true
   ShowWordCount = true
   ShowRssButtonInSectionTermList = true
   
-  # 主页模式设置
+  # Profile Mode Settings
   [params.profileMode]
     enabled = true
     title = "Oops"
-    subtitle = "你好！我是Oops，这里是我的博客网站。分享有趣的技术和生活，主要是为了记录在辽宁大学学习的一些开发经历。"
+    subtitle = "Hello! I'm Oops, and this is my blog. Here I share interesting tech insights and life experiences, mainly documenting my development journey at Liaoning University."
     imageUrl = "/images/27dd0570-1c1b-42af-8a83-a564c7b6ba87.png"
     imageTitle = "my image"
     imageWidth = 150
     imageHeight = 150
 
     [[params.profileMode.buttons]]
-    name = "文章"
+    name = "Posts"
     url = "/posts"
     
     [[params.profileMode.buttons]]
-    name = "标签"
+    name = "Tags"
     url = "/tags"
 
-  # 社交图标
+  # Social Icons
   [[params.socialIcons]]
   name = "github"
   url = "https://github.com/KDZZZZZZ"
 
-  # 页面底部信息
+  # Footer Information
   [params.footer]
   since = 2024
   poweredBy = true
 
-  # 主页背景
+  # Home Background
   [params.assets]
   disableHLJS = true
   favicon = "/favicon.ico"
@@ -56,21 +56,21 @@ home = ["HTML", "RSS", "JSON"]
 [menu]
   [[menu.main]]
     identifier = "search"
-    name = "搜索"
+    name = "Search"
     url = "/search"
     weight = 10
   [[menu.main]]
     identifier = "posts"
-    name = "文章"
+    name = "Posts"
     url = "/posts"
     weight = 20
   [[menu.main]]
     identifier = "tags"
-    name = "标签"
+    name = "Tags"
     url = "/tags"
     weight = 30
   [[menu.main]]
     identifier = "about"
-    name = "关于"
+    name = "About"
     url = "/about"
     weight = 40

@@ -2,17 +2,17 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
     <title>Categories on Oops</title>
-    <link>http://localhost:60617/categories/</link>
+    <link>http://localhost:1313/categories/</link>
     <description>Recent content in Categories on Oops</description>
     <generator>Hugo -- 0.140.1</generator>
-    <language>zh-cn</language>
+    <language>en-us</language>
     <lastBuildDate>Sat, 28 Dec 2024 00:00:00 +0000</lastBuildDate>
-    <atom:link href="http://localhost:60617/categories/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="http://localhost:1313/categories/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>随笔</title>
-      <link>http://localhost:60617/categories/%E9%9A%8F%E7%AC%94/</link>
+      <title>Journal</title>
+      <link>http://localhost:1313/categories/journal/</link>
       <pubDate>Sat, 28 Dec 2024 00:00:00 +0000</pubDate>
-      <guid>http://localhost:60617/categories/%E9%9A%8F%E7%AC%94/</guid>
+      <guid>http://localhost:1313/categories/journal/</guid>
       <description></description>
     </item>
   </channel>
