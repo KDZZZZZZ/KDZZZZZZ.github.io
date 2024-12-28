@@ -1,32 +1,64 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Oops</title><link>https://KDZZZZZZ.github.io/</link><description>Recent content on Oops</description><generator>Hugo -- 0.140.1</generator><language>en-us</language><lastBuildDate>Sat, 28 Dec 2024 20:41:44 +0800</lastBuildDate><atom:link href="https://KDZZZZZZ.github.io/index.xml" rel="self" type="application/rss+xml"/><item><title>我的第一篇博客</title><link>https://KDZZZZZZ.github.io/posts/my-first-post/</link><pubDate>Sat, 28 Dec 2024 20:41:44 +0800</pubDate><guid>https://KDZZZZZZ.github.io/posts/my-first-post/</guid><description>&lt;h1 id="欢迎来到我的博客">欢迎来到我的博客！&lt;/h1>
-&lt;p>这是我用 Hugo 搭建的新博客的第一篇文章。我很高兴能在这里开始分享我的想法和经历。&lt;/p>
-&lt;h2 id="期待">期待&lt;/h2>
-&lt;p>我会在这里写一些我感兴趣的话题。敬请期待更多内容！&lt;/p></description></item><item><title>About Me</title><link>https://KDZZZZZZ.github.io/about/</link><pubDate>Sat, 28 Dec 2024 00:00:00 +0000</pubDate><guid>https://KDZZZZZZ.github.io/about/</guid><description>&lt;p>Oops，本科就读于杭州电子科技大学CS系28级，渴望灵感之风的吹拂也希望夯实工程能力。&lt;/p>
-&lt;h2 id="虚度的时间">虚度的时间&lt;/h2>
-&lt;p>探索了CS的必修四件套，go后端入门，NLP算法基础，以及一些电子元件的理论知识。还有一些比赛、外包项目。&lt;/p>
-&lt;h2 id="痛定思痛">痛定思痛&lt;/h2>
-&lt;p>接下来我将继续MLSys方向，同时分享一些ML和DL算法和论文复现。或许还有一些微调RAG提示词工程的笔记。靡不有初，鲜克有终。&lt;/p>
-&lt;h2 id="关于博客">关于博客&lt;/h2>
-&lt;p>理论会尽力严谨，如果有教程会尽力细致，如果有随笔会尽量随便。&lt;/p>
-&lt;ul>
-&lt;li>GitHub: &lt;a href="https://github.com/KDZZZZZZ">KDZZZZZZ&lt;/a>&lt;/li>
-&lt;li>Email: &lt;a href="mailto:2112335382@qq.com">QQ邮箱&lt;/a>&lt;/li>
-&lt;li>bilibili: &lt;a href="https://space.bilibili.com/1938413314?spm_id_from=333.1007.0.0">在B站考研&lt;/a>&lt;/li>
-&lt;/ul>
-&lt;p>会赢的，对吧&lt;/p></description></item><item><title>Hello World</title><link>https://KDZZZZZZ.github.io/posts/hello-world/</link><pubDate>Sat, 28 Dec 2024 00:00:00 +0000</pubDate><guid>https://KDZZZZZZ.github.io/posts/hello-world/</guid><description>&lt;h2 id="hello-world">Hello, World!&lt;/h2>
-&lt;p>This is my first blog post. Here, I&amp;rsquo;ll share some interesting tech insights and life experiences.&lt;/p>
-&lt;h3 id="why-start-a-blog">Why Start a Blog?&lt;/h3>
-&lt;p>Blogging helps me:&lt;/p>
-&lt;ol>
-&lt;li>Document my learning journey&lt;/li>
-&lt;li>Share technical insights&lt;/li>
-&lt;li>Connect with like-minded people&lt;/li>
-&lt;/ol>
-&lt;h3 id="future-plans">Future Plans&lt;/h3>
-&lt;p>I plan to write about:&lt;/p>
-&lt;ul>
-&lt;li>Programming techniques&lt;/li>
-&lt;li>Learning experiences&lt;/li>
-&lt;li>Life reflections&lt;/li>
-&lt;/ul>
-&lt;p>Stay tuned!&lt;/p></description></item></channel></rss>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>Oops</title>
+    <link>http://localhost:61710/</link>
+    <description>Recent content on Oops</description>
+    <generator>Hugo -- 0.140.1</generator>
+    <language>en-us</language>
+    <lastBuildDate>Sat, 28 Dec 2024 20:41:44 +0800</lastBuildDate>
+    <atom:link href="http://localhost:61710/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>我的第一篇博客</title>
+      <link>http://localhost:61710/posts/my-first-post/</link>
+      <pubDate>Sat, 28 Dec 2024 20:41:44 +0800</pubDate>
+      <guid>http://localhost:61710/posts/my-first-post/</guid>
+      <description>&lt;h1 id=&#34;欢迎来到我的博客&#34;&gt;欢迎来到我的博客！&lt;/h1&gt;
+&lt;p&gt;这是我用 Hugo 搭建的新博客的第一篇文章。我很高兴能在这里开始分享我的想法和经历。&lt;/p&gt;
+&lt;h2 id=&#34;期待&#34;&gt;期待&lt;/h2&gt;
+&lt;p&gt;我会在这里写一些我感兴趣的话题。敬请期待更多内容！&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>About Me</title>
+      <link>http://localhost:61710/about/</link>
+      <pubDate>Sat, 28 Dec 2024 00:00:00 +0000</pubDate>
+      <guid>http://localhost:61710/about/</guid>
+      <description>&lt;p&gt;Oops，本科就读于杭州电子科技大学CS系28级，渴望灵感之风的吹拂也希望夯实工程能力。&lt;/p&gt;
+&lt;h2 id=&#34;虚度的时间&#34;&gt;虚度的时间&lt;/h2&gt;
+&lt;p&gt;探索了CS的必修四件套，go后端入门，NLP算法基础，以及一些电子元件的理论知识。还有一些比赛、外包项目。&lt;/p&gt;
+&lt;h2 id=&#34;痛定思痛&#34;&gt;痛定思痛&lt;/h2&gt;
+&lt;p&gt;接下来我将继续MLSys方向，同时分享一些ML和DL算法和论文复现。或许还有一些微调RAG提示词工程的笔记。靡不有初，鲜克有终。&lt;/p&gt;
+&lt;h2 id=&#34;关于博客&#34;&gt;关于博客&lt;/h2&gt;
+&lt;p&gt;理论会尽力严谨，如果有教程会尽力细致，如果有随笔会尽量随便。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;GitHub: &lt;a href=&#34;https://github.com/KDZZZZZZ&#34;&gt;KDZZZZZZ&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Email: &lt;a href=&#34;mailto:2112335382@qq.com&#34;&gt;QQ邮箱&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;bilibili: &lt;a href=&#34;https://space.bilibili.com/1938413314?spm_id_from=333.1007.0.0&#34;&gt;在B站考研&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;会赢的，对吧&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Hello World</title>
+      <link>http://localhost:61710/posts/hello-world/</link>
+      <pubDate>Sat, 28 Dec 2024 00:00:00 +0000</pubDate>
+      <guid>http://localhost:61710/posts/hello-world/</guid>
+      <description>&lt;h2 id=&#34;hello-world&#34;&gt;Hello, World!&lt;/h2&gt;
+&lt;p&gt;This is my first blog post. Here, I&amp;rsquo;ll share some interesting tech insights and life experiences.&lt;/p&gt;
+&lt;h3 id=&#34;why-start-a-blog&#34;&gt;Why Start a Blog?&lt;/h3&gt;
+&lt;p&gt;Blogging helps me:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Document my learning journey&lt;/li&gt;
+&lt;li&gt;Share technical insights&lt;/li&gt;
+&lt;li&gt;Connect with like-minded people&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3 id=&#34;future-plans&#34;&gt;Future Plans&lt;/h3&gt;
+&lt;p&gt;I plan to write about:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Programming techniques&lt;/li&gt;
+&lt;li&gt;Learning experiences&lt;/li&gt;
+&lt;li&gt;Life reflections&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Stay tuned!&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>
