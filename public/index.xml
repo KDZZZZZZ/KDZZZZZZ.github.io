@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
-    <title>我的博客</title>
+    <title>KrislinBlog</title>
     <link>http://localhost:60617/</link>
-    <description>Recent content on 我的博客</description>
+    <description>Recent content on KrislinBlog</description>
     <generator>Hugo -- 0.140.1</generator>
     <language>zh-cn</language>
     <lastBuildDate>Sat, 28 Dec 2024 20:41:44 +0800</lastBuildDate>
@@ -17,6 +17,35 @@
 &lt;p&gt;这是我用 Hugo 搭建的新博客的第一篇文章。我很高兴能在这里开始分享我的想法和经历。&lt;/p&gt;
 &lt;h2 id=&#34;期待&#34;&gt;期待&lt;/h2&gt;
 &lt;p&gt;我会在这里写一些我感兴趣的话题。敬请期待更多内容！&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>关于我</title>
+      <link>http://localhost:60617/about/</link>
+      <pubDate>Sat, 28 Dec 2024 00:00:00 +0000</pubDate>
+      <guid>http://localhost:60617/about/</guid>
+      <description>&lt;h2 id=&#34;-你好&#34;&gt;👋 你好！&lt;/h2&gt;
+&lt;p&gt;我是 Krislin，这里是我的个人博客。我会在这里分享我的学习经历、技术心得和生活感悟。&lt;/p&gt;
+&lt;h3 id=&#34;-关注领域&#34;&gt;🎯 关注领域&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;编程技术&lt;/li&gt;
+&lt;li&gt;前端开发&lt;/li&gt;
+&lt;li&gt;后端开发&lt;/li&gt;
+&lt;li&gt;个人成长&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;-技术栈&#34;&gt;🛠️ 技术栈&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;前端：HTML, CSS, JavaScript, Vue, React&lt;/li&gt;
+&lt;li&gt;后端：Node.js, Python&lt;/li&gt;
+&lt;li&gt;其他：Git, Linux&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;-联系我&#34;&gt;📫 联系我&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;GitHub: &lt;a href=&#34;https://github.com/KDZZZZZZ&#34;&gt;KDZZZZZZ&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Email: [your-email@example.com]&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;-关于本站&#34;&gt;🎨 关于本站&lt;/h3&gt;
+&lt;p&gt;本站使用 &lt;a href=&#34;https://gohugo.io/&#34;&gt;Hugo&lt;/a&gt; 构建，主题基于 &lt;a href=&#34;https://github.com/adityatelange/hugo-PaperMod&#34;&gt;PaperMod&lt;/a&gt;，部署在 &lt;a href=&#34;https://pages.github.com/&#34;&gt;GitHub Pages&lt;/a&gt; 上。&lt;/p&gt;
+&lt;p&gt;感谢访问我的博客！&lt;/p&gt;</description>
     </item>
   </channel>
 </rss>
