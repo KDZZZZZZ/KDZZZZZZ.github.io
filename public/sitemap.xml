@@ -18,6 +18,16 @@
     <lastmod>2024-12-28T20:41:44+08:00</lastmod>
   </url><url>
     <loc>http://localhost:60617/categories/</loc>
+    <lastmod>2024-12-28T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>http://localhost:60617/posts/hello-world/</loc>
+    <lastmod>2024-12-28T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>http://localhost:60617/about/</loc>
+    <lastmod>2024-12-28T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>http://localhost:60617/categories/%E9%9A%8F%E7%AC%94/</loc>
+    <lastmod>2024-12-28T00:00:00+00:00</lastmod>
   </url><url>
     <loc>http://localhost:60617/search/</loc>
   </url>

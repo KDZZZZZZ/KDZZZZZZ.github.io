@@ -1,0 +1,200 @@
+{{- /* Head custom content area start */ -}}
+<style>
+:root {
+    --main-width: 1200px !important;  /* 增加主内容区域宽度 */
+    --nav-width: 1200px !important;   /* 导航栏宽度保持不变 */
+}
+
+body {
+    background-image: url('/images/430209634e37dee242d5d8414cf9b7b2b6022715.jpg') !important;
+    background-size: cover !important;
+    background-position: center !important;
+    background-attachment: fixed !important;
+    background-repeat: no-repeat !important;
+    min-height: 100vh !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+body::before {
+    content: "" !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    background: rgba(0, 0, 0, 0.3) !important;
+    z-index: -1 !important;
+}
+
+.main {
+    background: transparent !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    border: none !important;
+    padding: 20px !important;
+    max-width: var(--main-width) !important;
+    width: 100% !important;
+    margin: 0 auto !important;
+}
+
+/* 文章内容页面的样式 */
+.post-single {
+    background: rgba(0, 0, 0, 0.7) !important;
+    backdrop-filter: blur(15px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 12px !important;
+    padding: 40px !important;
+    margin: 20px auto !important;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37) !important;
+    width: 100% !important;
+}
+
+.post-content {
+    font-size: 1.1em !important;
+    line-height: 1.8 !important;
+    max-width: 100% !important;
+}
+
+.post-content h2,
+.post-content h3,
+.post-content h4 {
+    margin-top: 2em !important;
+    margin-bottom: 1em !important;
+    color: #fff !important;
+}
+
+.post-content p {
+    margin: 1.5em 0 !important;
+}
+
+.post-content code {
+    background: rgba(255, 255, 255, 0.1) !important;
+    padding: 2px 5px !important;
+    border-radius: 3px !important;
+}
+
+.post-content pre {
+    background: rgba(0, 0, 0, 0.5) !important;
+    padding: 20px !important;
+    border-radius: 8px !important;
+    overflow-x: auto !important;
+    width: 100% !important;
+}
+
+.nav {
+    background: rgba(0, 0, 0, 0.6) !important;
+    backdrop-filter: blur(10px) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+    margin-bottom: 30px !important;
+    max-width: var(--nav-width) !important;
+    width: 100% !important;
+    margin: 0 auto 30px auto !important;
+}
+
+.profile {
+    text-align: center !important;
+}
+
+.profile img {
+    border: 3px solid rgba(255, 255, 255, 0.2) !important;
+    transition: transform 0.3s ease !important;
+    box-shadow: 0 0 20px rgba(0,0,0,0.2) !important;
+    max-width: 170px !important;
+    border-radius: 50% !important;
+}
+
+.profile img:hover {
+    transform: scale(1.05) !important;
+    border-color: rgba(255, 255, 255, 0.4) !important;
+}
+
+.post-entry {
+    background: rgba(0, 0, 0, 0.6) !important;
+    backdrop-filter: blur(8px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    transition: all 0.3s ease !important;
+    border-radius: 12px !important;
+    padding: 20px !important;
+    margin-bottom: 20px !important;
+}
+
+.post-entry:hover {
+    transform: translateY(-5px) !important;
+    background: rgba(0, 0, 0, 0.7) !important;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37) !important;
+}
+
+.dark {
+    color: #fff !important;
+}
+
+a {
+    color: #fff !important;
+    text-decoration: none !important;
+}
+
+a:hover {
+    color: rgba(255, 255, 255, 0.8) !important;
+}
+
+.button {
+    background: rgba(0, 0, 0, 0.6) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    transition: all 0.3s ease !important;
+    padding: 8px 20px !important;
+    border-radius: 20px !important;
+    display: inline-block !important;
+    margin: 5px !important;
+}
+
+.button:hover {
+    background: rgba(0, 0, 0, 0.7) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2) !important;
+}
+
+.first-entry {
+    background: rgba(0, 0, 0, 0.6) !important;
+    backdrop-filter: blur(8px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 12px !important;
+    padding: 20px !important;
+    margin-bottom: 20px !important;
+}
+
+.social-icons svg {
+    fill: #fff !important;
+    opacity: 0.9 !important;
+    transition: all 0.3s ease !important;
+}
+
+.social-icons svg:hover {
+    opacity: 1 !important;
+    transform: scale(1.1) !important;
+}
+
+/* 文章页面的标签和分类 */
+.post-tags a,
+.post-categories a {
+    background: rgba(255, 255, 255, 0.1) !important;
+    padding: 5px 10px !important;
+    border-radius: 15px !important;
+    font-size: 0.9em !important;
+    transition: all 0.3s ease !important;
+}
+
+.post-tags a:hover,
+.post-categories a:hover {
+    background: rgba(255, 255, 255, 0.2) !important;
+    transform: translateY(-2px) !important;
+}
+
+/* 文章底部的分享按钮 */
+.share-buttons {
+    margin-top: 30px !important;
+    padding-top: 20px !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+</style>
+{{- /* Head custom content area end */ -}}

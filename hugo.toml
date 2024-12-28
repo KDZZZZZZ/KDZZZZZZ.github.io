@@ -1,7 +1,7 @@
 baseURL = 'https://KDZZZZZZ.github.io'
 languageCode = 'zh-cn'
 defaultContentLanguage = 'zh'
-title = 'KrislinBlog'
+title = 'Oops'
 theme = 'PaperMod'
 
 # 搜索功能
@@ -9,6 +9,7 @@ theme = 'PaperMod'
 home = ["HTML", "RSS", "JSON"]
 
 [params]
+  author = "Oops"
   defaultTheme = "dark"  # 默认使用暗色主题
   ShowReadingTime = true
   ShowShareButtons = true
@@ -21,10 +22,10 @@ home = ["HTML", "RSS", "JSON"]
   # 主页模式设置
   [params.profileMode]
     enabled = true
-    title = "Krislin"
-    subtitle = "你好！我是Krislin，这里是我的博客网站。分享有趣的技术和生活，主要是为了记录在大学学习的一些开发经历。"
-    imageUrl = "/images/profile.jpg"
-    imageTitle = "Krislin"
+    title = "Oops"
+    subtitle = "你好！我是Oops，这里是我的博客网站。分享有趣的技术和生活，主要是为了记录在辽宁大学学习的一些开发经历。"
+    imageUrl = "/images/27dd0570-1c1b-42af-8a83-a564c7b6ba87.png"
+    imageTitle = "my image"
     imageWidth = 150
     imageHeight = 150
 
@@ -56,25 +57,20 @@ home = ["HTML", "RSS", "JSON"]
   [[menu.main]]
     identifier = "search"
     name = "搜索"
-    url = "/search/"
-    weight = 1
+    url = "/search"
+    weight = 10
   [[menu.main]]
     identifier = "posts"
     name = "文章"
-    url = "/posts/"
-    weight = 2
-  [[menu.main]]
-    identifier = "archives"
-    name = "归档"
-    url = "/archives/"
-    weight = 3
+    url = "/posts"
+    weight = 20
   [[menu.main]]
     identifier = "tags"
     name = "标签"
-    url = "/tags/"
-    weight = 4
+    url = "/tags"
+    weight = 30
   [[menu.main]]
     identifier = "about"
     name = "关于"
-    url = "/about/"
-    weight = 5
+    url = "/about"
+    weight = 40
