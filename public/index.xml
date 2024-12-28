@@ -1,30 +1,40 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Oops</title><link>https://KDZZZZZZ.github.io/</link><description>Recent content on Oops</description><generator>Hugo -- 0.140.1</generator><language>en-us</language><lastBuildDate>Sat, 28 Dec 2024 20:41:44 +0800</lastBuildDate><atom:link href="https://KDZZZZZZ.github.io/index.xml" rel="self" type="application/rss+xml"/><item><title>我的第一篇博客</title><link>https://KDZZZZZZ.github.io/posts/my-first-post/</link><pubDate>Sat, 28 Dec 2024 20:41:44 +0800</pubDate><guid>https://KDZZZZZZ.github.io/posts/my-first-post/</guid><description>&lt;h1 id="欢迎来到我的博客">欢迎来到我的博客！&lt;/h1>
-&lt;p>这是我用 Hugo 搭建的新博客的第一篇文章。我很高兴能在这里开始分享我的想法和经历。&lt;/p>
-&lt;h2 id="期待">期待&lt;/h2>
-&lt;p>我会在这里写一些我感兴趣的话题。敬请期待更多内容！&lt;/p></description></item><item><title>About Me</title><link>https://KDZZZZZZ.github.io/about/</link><pubDate>Sat, 28 Dec 2024 00:00:00 +0000</pubDate><guid>https://KDZZZZZZ.github.io/about/</guid><description>&lt;h1 id="about-me">About Me&lt;/h1>
-&lt;p>Hello! I&amp;rsquo;m Oops, a student at Liaoning University passionate about technology and programming. This blog serves as my digital garden where I document my learning journey and share insights about software development, tech trends, and personal growth.&lt;/p>
-&lt;h2 id="what-i-do">What I Do&lt;/h2>
-&lt;ul>
-&lt;li>🎓 Studying at Liaoning University&lt;/li>
-&lt;li>💻 Learning various programming languages and technologies&lt;/li>
-&lt;li>✍️ Writing about my experiences and learnings&lt;/li>
-&lt;li>🌱 Always eager to learn and grow&lt;/li>
-&lt;/ul>
-&lt;h2 id="contact">Contact&lt;/h2>
-&lt;p>Feel free to reach out to me through:&lt;/p></description></item><item><title>Hello World</title><link>https://KDZZZZZZ.github.io/posts/hello-world/</link><pubDate>Sat, 28 Dec 2024 00:00:00 +0000</pubDate><guid>https://KDZZZZZZ.github.io/posts/hello-world/</guid><description>&lt;h2 id="hello-world">Hello, World!&lt;/h2>
-&lt;p>This is my first blog post. Here, I&amp;rsquo;ll share some interesting tech insights and life experiences.&lt;/p>
-&lt;h3 id="why-start-a-blog">Why Start a Blog?&lt;/h3>
-&lt;p>Blogging helps me:&lt;/p>
-&lt;ol>
-&lt;li>Document my learning journey&lt;/li>
-&lt;li>Share technical insights&lt;/li>
-&lt;li>Connect with like-minded people&lt;/li>
-&lt;/ol>
-&lt;h3 id="future-plans">Future Plans&lt;/h3>
-&lt;p>I plan to write about:&lt;/p>
-&lt;ul>
-&lt;li>Programming techniques&lt;/li>
-&lt;li>Learning experiences&lt;/li>
-&lt;li>Life reflections&lt;/li>
-&lt;/ul>
-&lt;p>Stay tuned!&lt;/p></description></item></channel></rss>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Oops</title>
+    <link>http://localhost:56415/</link>
+    <description>Recent content on Oops</description>
+    <generator>Hugo</generator>
+    <language>en-us</language>
+    <lastBuildDate>Sat, 28 Dec 2024 20:41:44 +0800</lastBuildDate>
+    <atom:link href="http://localhost:56415/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>我的第一篇博客</title>
+      <link>http://localhost:56415/posts/my-first-post/</link>
+      <pubDate>Sat, 28 Dec 2024 20:41:44 +0800</pubDate>
+      <guid>http://localhost:56415/posts/my-first-post/</guid>
+      <description>&lt;h1 id=&#34;欢迎来到我的博客&#34;&gt;欢迎来到我的博客！&lt;/h1&gt;&#xA;&lt;p&gt;这是我用 Hugo 搭建的新博客的第一篇文章。我很高兴能在这里开始分享我的想法和经历。&lt;/p&gt;&#xA;&lt;h2 id=&#34;期待&#34;&gt;期待&lt;/h2&gt;&#xA;&lt;p&gt;我会在这里写一些我感兴趣的话题。敬请期待更多内容！&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>About Me</title>
+      <link>http://localhost:56415/about/</link>
+      <pubDate>Sat, 28 Dec 2024 00:00:00 +0000</pubDate>
+      <guid>http://localhost:56415/about/</guid>
+      <description>&lt;h1 id=&#34;个人简介&#34;&gt;个人简介&lt;/h1&gt;&#xA;&lt;p&gt;Oops，本科就读于杭州电子科技大学CS系28级，渴望灵感之风的吹拂也希望夯实工程能力。&lt;/p&gt;&#xA;&lt;h2 id=&#34;虚度的时间&#34;&gt;虚度的时间&lt;/h2&gt;&#xA;&lt;p&gt;探索了CS的必修四件套，go后端入门，NLP算法基础，以及一些电子元件的理论知识。还有一些比赛、外包项目。&lt;/p&gt;&#xA;&lt;h2 id=&#34;痛定思痛&#34;&gt;痛定思痛&lt;/h2&gt;&#xA;&lt;p&gt;接下来我将继续MLSys方向，同时分享一些ML和DL算法和论文复现。或许还有一些微调RAG提示词工程的笔记。靡不有初，鲜克有终。&lt;/p&gt;&#xA;&lt;h2 id=&#34;关于博客&#34;&gt;关于博客&lt;/h2&gt;&#xA;&lt;p&gt;理论会尽力严谨，如果有教程会尽力细致，如果有随笔会尽量随便。&lt;/p&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;GitHub: &lt;a href=&#34;https://github.com/KDZZZZZZ&#34;&gt;KDZZZZZZ&lt;/a&gt;&lt;/li&gt;&#xA;&lt;li&gt;Email: &lt;a href=&#34;mailto:2112335382@qq.com&#34;&gt;QQ邮箱&lt;/a&gt;&lt;/li&gt;&#xA;&lt;li&gt;bilibili: &lt;a href=&#34;https://space.bilibili.com/1938413314?spm_id_from=333.1007.0.0&#34;&gt;在B站考研&lt;/a&gt;&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;p&gt;会赢的，对吧&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Hello World</title>
+      <link>http://localhost:56415/posts/hello-world/</link>
+      <pubDate>Sat, 28 Dec 2024 00:00:00 +0000</pubDate>
+      <guid>http://localhost:56415/posts/hello-world/</guid>
+      <description>&lt;h2 id=&#34;hello-world&#34;&gt;Hello, World!&lt;/h2&gt;&#xA;&lt;p&gt;This is my first blog post. Here, I&amp;rsquo;ll share some interesting tech insights and life experiences.&lt;/p&gt;&#xA;&lt;h3 id=&#34;why-start-a-blog&#34;&gt;Why Start a Blog?&lt;/h3&gt;&#xA;&lt;p&gt;Blogging helps me:&lt;/p&gt;&#xA;&lt;ol&gt;&#xA;&lt;li&gt;Document my learning journey&lt;/li&gt;&#xA;&lt;li&gt;Share technical insights&lt;/li&gt;&#xA;&lt;li&gt;Connect with like-minded people&lt;/li&gt;&#xA;&lt;/ol&gt;&#xA;&lt;h3 id=&#34;future-plans&#34;&gt;Future Plans&lt;/h3&gt;&#xA;&lt;p&gt;I plan to write about:&lt;/p&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;Programming techniques&lt;/li&gt;&#xA;&lt;li&gt;Learning experiences&lt;/li&gt;&#xA;&lt;li&gt;Life reflections&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;p&gt;Stay tuned!&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>搜索</title>
+      <link>http://localhost:56415/search/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>http://localhost:56415/search/</guid>
+      <description>搜索</description>
+    </item>
+  </channel>
+</rss>
