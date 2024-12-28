@@ -1,45 +1,52 @@
-name: Deploy to GitHub Pages
+name: Deploy Hugo site to Pages
 
 on:
   push:
     branches:
-      - main  # 当推送到 main 分支时触发
-  workflow_dispatch:  # 允许手动触发
+      - main
+  workflow_dispatch:
+
+# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow only one concurrent deployment
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
         with:
+          submodules: true
           fetch-depth: 0
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      - name: Setup Hugo
+        uses: peaceiris/actions-hugo@v2
         with:
-          python-version: '3.8'
+          hugo-version: 'latest'
+          extended: true
 
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
+      - name: Build
+        run: hugo --minify
 
-      - name: Initialize database
-        run: |
-          echo "Initializing database..."
-          python init_db.py
-          ls -la blog.db
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v2
+        with:
+          path: ./public
 
-      - name: Generate static files
-        run: |
-          echo "Generating static files..."
-          python freeze.py
-          echo "Build directory contents:"
-          ls -la build/
-
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
       - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./build
-          force_orphan: true
+        id: deployment
+        uses: actions/deploy-pages@v2
