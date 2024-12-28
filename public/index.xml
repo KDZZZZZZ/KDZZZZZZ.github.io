@@ -2,27 +2,44 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
     <title>Oops</title>
-    <link>http://localhost:1313/</link>
+    <link>https://KDZZZZZZ.github.io/</link>
     <description>Recent content on Oops</description>
     <generator>Hugo -- 0.140.1</generator>
     <language>en-us</language>
     <lastBuildDate>Sat, 28 Dec 2024 20:41:44 +0800</lastBuildDate>
-    <atom:link href="http://localhost:1313/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="https://KDZZZZZZ.github.io/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>我的第一篇博客</title>
-      <link>http://localhost:1313/posts/my-first-post/</link>
+      <link>https://KDZZZZZZ.github.io/posts/my-first-post/</link>
       <pubDate>Sat, 28 Dec 2024 20:41:44 +0800</pubDate>
-      <guid>http://localhost:1313/posts/my-first-post/</guid>
+      <guid>https://KDZZZZZZ.github.io/posts/my-first-post/</guid>
       <description>&lt;h1 id=&#34;欢迎来到我的博客&#34;&gt;欢迎来到我的博客！&lt;/h1&gt;
 &lt;p&gt;这是我用 Hugo 搭建的新博客的第一篇文章。我很高兴能在这里开始分享我的想法和经历。&lt;/p&gt;
 &lt;h2 id=&#34;期待&#34;&gt;期待&lt;/h2&gt;
 &lt;p&gt;我会在这里写一些我感兴趣的话题。敬请期待更多内容！&lt;/p&gt;</description>
     </item>
     <item>
-      <title>Hello World</title>
-      <link>http://localhost:1313/posts/hello-world/</link>
+      <title>About Me</title>
+      <link>https://KDZZZZZZ.github.io/about/</link>
       <pubDate>Sat, 28 Dec 2024 00:00:00 +0000</pubDate>
-      <guid>http://localhost:1313/posts/hello-world/</guid>
+      <guid>https://KDZZZZZZ.github.io/about/</guid>
+      <description>&lt;h1 id=&#34;about-me&#34;&gt;About Me&lt;/h1&gt;
+&lt;p&gt;Hello! I&amp;rsquo;m Oops, a student at Liaoning University passionate about technology and programming. This blog serves as my digital garden where I document my learning journey and share insights about software development, tech trends, and personal growth.&lt;/p&gt;
+&lt;h2 id=&#34;what-i-do&#34;&gt;What I Do&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;🎓 Studying at Liaoning University&lt;/li&gt;
+&lt;li&gt;💻 Learning various programming languages and technologies&lt;/li&gt;
+&lt;li&gt;✍️ Writing about my experiences and learnings&lt;/li&gt;
+&lt;li&gt;🌱 Always eager to learn and grow&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;contact&#34;&gt;Contact&lt;/h2&gt;
+&lt;p&gt;Feel free to reach out to me through:&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Hello World</title>
+      <link>https://KDZZZZZZ.github.io/posts/hello-world/</link>
+      <pubDate>Sat, 28 Dec 2024 00:00:00 +0000</pubDate>
+      <guid>https://KDZZZZZZ.github.io/posts/hello-world/</guid>
       <description>&lt;h2 id=&#34;hello-world&#34;&gt;Hello, World!&lt;/h2&gt;
 &lt;p&gt;This is my first blog post. Here, I&amp;rsquo;ll share some interesting tech insights and life experiences.&lt;/p&gt;
 &lt;h3 id=&#34;why-start-a-blog&#34;&gt;Why Start a Blog?&lt;/h3&gt;
@@ -40,42 +57,6 @@
 &lt;li&gt;Life reflections&lt;/li&gt;
 &lt;/ul&gt;
 &lt;p&gt;Stay tuned!&lt;/p&gt;</description>
-    </item>
-    <item>
-      <title>关于我</title>
-      <link>http://localhost:1313/about/</link>
-      <pubDate>Sat, 28 Dec 2024 00:00:00 +0000</pubDate>
-      <guid>http://localhost:1313/about/</guid>
-      <description>&lt;h2 id=&#34;-你好&#34;&gt;👋 你好！&lt;/h2&gt;
-&lt;p&gt;我是 Krislin，这里是我的个人博客。我会在这里分享我的学习经历、技术心得和生活感悟。&lt;/p&gt;
-&lt;h3 id=&#34;-关注领域&#34;&gt;🎯 关注领域&lt;/h3&gt;
-&lt;ul&gt;
-&lt;li&gt;编程技术&lt;/li&gt;
-&lt;li&gt;前端开发&lt;/li&gt;
-&lt;li&gt;后端开发&lt;/li&gt;
-&lt;li&gt;个人成长&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h3 id=&#34;-技术栈&#34;&gt;🛠️ 技术栈&lt;/h3&gt;
-&lt;ul&gt;
-&lt;li&gt;前端：HTML, CSS, JavaScript, Vue, React&lt;/li&gt;
-&lt;li&gt;后端：Node.js, Python&lt;/li&gt;
-&lt;li&gt;其他：Git, Linux&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h3 id=&#34;-联系我&#34;&gt;📫 联系我&lt;/h3&gt;
-&lt;ul&gt;
-&lt;li&gt;GitHub: &lt;a href=&#34;https://github.com/KDZZZZZZ&#34;&gt;KDZZZZZZ&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;Email: [your-email@example.com]&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h3 id=&#34;-关于本站&#34;&gt;🎨 关于本站&lt;/h3&gt;
-&lt;p&gt;本站使用 &lt;a href=&#34;https://gohugo.io/&#34;&gt;Hugo&lt;/a&gt; 构建，主题基于 &lt;a href=&#34;https://github.com/adityatelange/hugo-PaperMod&#34;&gt;PaperMod&lt;/a&gt;，部署在 &lt;a href=&#34;https://pages.github.com/&#34;&gt;GitHub Pages&lt;/a&gt; 上。&lt;/p&gt;
-&lt;p&gt;感谢访问我的博客！&lt;/p&gt;
-&lt;hr&gt;
-&lt;hr&gt;
-&lt;h2 id=&#34;summary-about-me&#34;&gt;title: &amp;ldquo;About Me&amp;rdquo;
-url: &amp;ldquo;/about&amp;rdquo;
-summary: &amp;ldquo;About Me&amp;rdquo;&lt;/h2&gt;
-&lt;h2 id=&#34;about-me&#34;&gt;About Me&lt;/h2&gt;
-&lt;p&gt;Hello! I&amp;rsquo;m Oops, a student at Liaoning University passionate about technology and programming. This blog serves as my digital garden where I document my learning journey and share insights about software development, tech trends, and personal growth.&lt;/p&gt;</description>
     </item>
   </channel>
 </rss>
