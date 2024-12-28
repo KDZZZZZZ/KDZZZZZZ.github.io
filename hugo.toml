@@ -4,33 +4,74 @@ defaultContentLanguage = 'zh'
 title = '我的博客'
 theme = 'PaperMod'
 
+# 搜索功能
+[outputs]
+home = ["HTML", "RSS", "JSON"]
+
 [params]
-  # PaperMod theme settings
+  # 基础设置
   defaultTheme = "auto"
   ShowReadingTime = true
   ShowShareButtons = true
   ShowPostNavLinks = true
   ShowBreadCrumbs = true
   ShowCodeCopyButtons = true
+  ShowWordCount = true
+  ShowRssButtonInSectionTermList = true
   
+  # 主页模式设置
   [params.profileMode]
     enabled = true
     title = "我的博客"
     subtitle = "分享技术与生活"
+    imageUrl = "/images/profile.jpg" # 你需要添加头像图片
+    imageTitle = "我的头像"
+    imageWidth = 120
+    imageHeight = 120
     
+    # 社交链接
+    [[params.profileMode.buttons]]
+    name = "文章"
+    url = "/posts"
+    
+    [[params.profileMode.buttons]]
+    name = "标签"
+    url = "/tags"
+    
+  # 社交图标
+  [[params.socialIcons]]
+  name = "github"
+  url = "https://github.com/KDZZZZZZ"
+    
+  # 搜索设置
+  [params.fuseOpts]
+    isCaseSensitive = false
+    shouldSort = true
+    location = 0
+    distance = 1000
+    threshold = 0.4
+    minMatchCharLength = 0
+    keys = ["title", "permalink", "summary", "content"]
+
+# 导航菜单
 [menu]
+  [[menu.main]]
+    identifier = "search"
+    name = "搜索"
+    url = "/search/"
+    weight = 1
   [[menu.main]]
     identifier = "posts"
     name = "文章"
     url = "/posts/"
-    weight = 10
+    weight = 2
   [[menu.main]]
     identifier = "archives"
     name = "归档"
     url = "/archives/"
-    weight = 20
+    weight = 3
   [[menu.main]]
     identifier = "tags"
     name = "标签"
     url = "/tags/"
-    weight = 30
+    weight = 4
