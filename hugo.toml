@@ -29,14 +29,6 @@ home = ["HTML", "RSS", "JSON"]
     imageWidth = 150
     imageHeight = 150
 
-    [[params.profileMode.buttons]]
-    name = "Posts"
-    url = "/posts"
-    
-    [[params.profileMode.buttons]]
-    name = "Tags"
-    url = "/tags"
-
   # Social Icons
   [[params.socialIcons]]
   name = "github"
