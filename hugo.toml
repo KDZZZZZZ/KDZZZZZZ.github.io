@@ -22,9 +22,9 @@ home = ["HTML", "RSS", "JSON"]
   # Profile Mode Settings
   [params.profileMode]
     enabled = true
-    title = "Oops"
-    subtitle = "Hello! I'm Oops, and this is my blog. Here I share interesting tech insights and life experiences, mainly documenting my development journey at Liaoning University."
-    imageUrl = "/images/27dd0570-1c1b-42af-8a83-a564c7b6ba87.png"
+    title = "👋 Hi there!"
+    subtitle = "The only limit to our realization of tomorrow will be our doubts of today."
+    imageUrl = "/images/profile.jpg"
     imageTitle = "my image"
     imageWidth = 150
     imageHeight = 150
