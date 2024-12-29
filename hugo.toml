@@ -22,9 +22,9 @@ home = ["HTML", "RSS", "JSON"]
   # Profile Mode Settings
   [params.profileMode]
     enabled = true
-    title = "👋 Hi there!"
+    title = "Oops"
     subtitle = "The only limit to our realization of tomorrow will be our doubts of today."
-    imageUrl = "/images/profile.jpg"
+    imageUrl = "/images/27dd0570-1c1b-42af-8a83-a564c7b6ba87.png"
     imageTitle = "my image"
     imageWidth = 150
     imageHeight = 150
