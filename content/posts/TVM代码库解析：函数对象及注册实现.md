@@ -1,5 +1,9 @@
 ---
+<<<<<<< HEAD
 title: "TVM代码库解析: 函数对象及注册实现"
+=======
+title: "TVM Function objects and registration implementation"
+>>>>>>> 7c634e67c6a74082f557666382e0fb2ac4d1d972
 date: 2025-1-28
 draft: false
 tags: ["TVM"]
