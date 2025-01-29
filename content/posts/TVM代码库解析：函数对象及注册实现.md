@@ -1,3 +1,12 @@
+---
+title: "TVM代码库解析：函数对象及注册实现"
+date: 2025-1-28
+draft: false
+tags: ["TVM"]
+categories: ["Journal"]
+---
+
+
 首先给出TVM中注册自定义函数和调用自定义函数的方法
 ```cpp
 // 注册函数
