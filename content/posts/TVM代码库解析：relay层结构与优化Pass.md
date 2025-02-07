@@ -1,3 +1,11 @@
+---
+title: "TVM代码库解析：Relay层结构与优化Pass"
+date: 2025-1-28
+draft: false
+tags: ["TVM", "Compiler", "Deep Learning"]
+categories: ["Technical"]
+---
+
 relay层主要由数据结构类(如Constant)和节点类(如ConstantNode)组成。
 下面梳理一下他们的继承链。
 
@@ -275,7 +283,6 @@ relay::Constant two = relay::Constant(runtime::NDArray::Scalar(2.0f));
 // 节点连接关系：
 // add_op -> CallNode
 //   ├── op    : FunctionRef (指向加法算子)
-//   ├── args[0]: CallNode (mul(x, 2))
 //   │   ├── op    : FunctionRef (指向乘法算子)
 //   │   ├── args[0]: VarNode (x)
 //   │   └── args[1]: ConstantNode (2)
