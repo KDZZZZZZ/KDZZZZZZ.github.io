@@ -1,6 +1,6 @@
 ---
 title: "TVM Function objects and registration implementation"
-date: 2025-1-28
+date: 2025-01-28T00:00:00+08:00
 draft: false
 tags: ["Blog"]
 categories: ["Journal"]
@@ -46,4 +46,4 @@ TVM实现注册Lambda函数的`set_body`函数是一个指向`PackedFunc`类型�
 以上所有的实现基本都在`include/tvm/runtime/packed_func.h`、`include/tvm/runtime/registry.h`和`src/runtime/registry.cc`
 
 `Python`封装了`ctypes`库，能够通过`name`查找全局注册的C++函数并获得函数句柄，调用后得到传回的返回值。
-其中对数据类型的包装也是TVM实现任意语言互相调用的关键。
+其中对数据类型的包装也是TVM实现任意语言互相调用的关键.
