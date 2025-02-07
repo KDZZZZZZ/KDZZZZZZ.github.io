@@ -2,7 +2,7 @@
 title: "TVM Function objects and registration implementation"
 date: 2025-01-28T00:00:00+08:00
 draft: false
-tags: ["Blog"]
+tags: ["TVM"]
 categories: ["Journal"]
 ---
 

@@ -274,7 +274,7 @@ class CallNode : public RelayExprNode {
 这里的`Array`用来储存上面的一切包装类(如Constant，用来引用节点)。
 `Array`的结构是`vector<ObjectRef>`.
 #### AST示例
-```cpp
+```$$cpp
 // 构建表达式：add(mul(x, 2), y)
 relay::Var x = relay::Var("x", TensorType({1}, DataType::Float(32)));
 relay::Var y = relay::Var("y", TensorType({1}, DataType::Float(32)));
@@ -290,3 +290,23 @@ relay::Constant two = relay::Constant(runtime::NDArray::Scalar(2.0f));
 relay::Call mul = relay::Call(mul_op, {x, two});
 relay::Call add = relay::Call(add_op, {mul, y});
 ```
+#### Pass
+Pass的结构和继承关系也分为节点类和引用类两支。
+
+使用`PassRegistry`全局注册表来管理 Pass。下面依次叙述一下各个类的功能。
+
+`Pass`继承自`ObjectRef`是所有引用类的基类
+
+`PassNode`继承自`Object`是所有节点类的基类
+
+`PassContext`储存了上下文信息，如优化级别、依赖的Pass、配置等。
+
+`PassInfo`储存了Pass的名称、描述、依赖关系等信息。
+
+`Sequential`引用类
+
+`SequentialNode`储存`PassInfo`和`Array<Pass>`，实现了遍历、执行、解析依赖的功能。
+在`include/tvm/ir/transform.h`中定义。
+
+`CreateFunctionPass`定义了函数级优化Pass
+`CreateModulePass`定义了模块级优化Pass
