@@ -1,29 +1,4 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Posts on Oops</title><link>https://KDZZZZZZ.github.io/posts/</link><description>Recent content in Posts on Oops</description><generator>Hugo -- 0.143.1</generator><language>en-us</language><lastBuildDate>Tue, 28 Jan 2025 00:00:00 +0800</lastBuildDate><atom:link href="https://KDZZZZZZ.github.io/posts/index.xml" rel="self" type="application/rss+xml"/><item><title>TVM Function objects and registration implementation</title><link>https://KDZZZZZZ.github.io/posts/tvm%E4%BB%A3%E7%A0%81%E5%BA%93%E8%A7%A3%E6%9E%90%E5%87%BD%E6%95%B0%E5%AF%B9%E8%B1%A1%E5%8F%8A%E6%B3%A8%E5%86%8C%E5%AE%9E%E7%8E%B0/</link><pubDate>Tue, 28 Jan 2025 00:00:00 +0800</pubDate><guid>https://KDZZZZZZ.github.io/posts/tvm%E4%BB%A3%E7%A0%81%E5%BA%93%E8%A7%A3%E6%9E%90%E5%87%BD%E6%95%B0%E5%AF%B9%E8%B1%A1%E5%8F%8A%E6%B3%A8%E5%86%8C%E5%AE%9E%E7%8E%B0/</guid><description>&lt;p>首先给出TVM中注册自定义函数和调用自定义函数的方法&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">// 注册函数
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>TVM_REGISTER_GLOBAL(&lt;span style="color:#e6db74">&amp;#34;add&amp;#34;&lt;/span>).set_body([](TVMArgs args, TVMRetValue&lt;span style="color:#f92672">*&lt;/span> ret) {
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">int&lt;/span> a &lt;span style="color:#f92672">=&lt;/span> args[&lt;span style="color:#ae81ff">0&lt;/span>];
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">int&lt;/span> b &lt;span style="color:#f92672">=&lt;/span> args[&lt;span style="color:#ae81ff">1&lt;/span>];
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">*&lt;/span>ret &lt;span style="color:#f92672">=&lt;/span> a &lt;span style="color:#f92672">+&lt;/span> b;
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>});
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">// 调用函数
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>PackedFunc add &lt;span style="color:#f92672">=&lt;/span> runtime&lt;span style="color:#f92672">::&lt;/span>Registry&lt;span style="color:#f92672">::&lt;/span>Get(&lt;span style="color:#e6db74">&amp;#34;add&amp;#34;&lt;/span>);
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">int&lt;/span> result &lt;span style="color:#f92672">=&lt;/span> add(&lt;span style="color:#ae81ff">3&lt;/span>, &lt;span style="color:#ae81ff">5&lt;/span>); &lt;span style="color:#75715e">// 返回 8
-&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>TVM实现注册Lambda函数的&lt;code>set_body&lt;/code>函数是一个指向&lt;code>PackedFunc&lt;/code>类型的指针.&lt;/p>
-&lt;p>&lt;code>TVM_REGISTER_GLOBAL&lt;/code>的实现如下：&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#define REGISTER_GLOBAL(name, func) \
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"> tvm::runtime::FRegistry::Register(name, tvm::runtime::PackedFunc(func))
-&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>使用全局哈希表&lt;code>FRegistry&lt;/code>注册函数。通过宏&lt;code>REGISTER_GLOBAL(&amp;quot;func_name&amp;quot;, MyFunction)&lt;/code>将函数与名称绑定，后续通过&lt;code>GetPackedFunc(&amp;quot;func_name&amp;quot;)&lt;/code>查找.&lt;/p>
-&lt;p>使用&lt;code>REGISTER_GLOBAL&lt;/code>宏将函数与名称绑定。这个宏会调用&lt;code>FRegistry::Register&lt;/code>方法，将函数存储到全局哈希表中。&lt;/p>
-&lt;p>&lt;code>PackedFunc&lt;/code>类型继承自&lt;code>ObjectRef&lt;/code>基类，实现了运算符重载，又用&lt;code>make_object&lt;/code>函数创建一个&lt;code>PackedFuncSubObj&lt;/code>类型对象，这个对象可以储存可调用对象.&lt;/p>
-&lt;p>&lt;code>PackedFuncSubObj&lt;/code>继承自&lt;code>PackedFuncObj&lt;/code>, 这是&lt;code>Object&lt;/code>的子类，&lt;code>Object&lt;/code>实现了引用计数和类型检查，&lt;code>PackedFunObj&lt;/code>对函数指针、参数和返回值指针进行了打包。&lt;/p>
-&lt;p>&lt;code>PackedFuncSubObj&lt;/code>类型用&lt;code>std::remove_reference&lt;/code>和&lt;code>std::remove_cv&lt;/code>进行了类型擦除，对&lt;code>const&lt;/code>、&lt;code>volatile&lt;/code>和引用进行去壳，移除我们不需要的特性.&lt;/p>
-&lt;p>&lt;code>PackedFuncSubObj&lt;/code>中定义了&lt;code>Extractor&lt;/code>提取器结构，提取器内部的&lt;code>Call&lt;/code>函数是一个指针，用来调用可调用对象。&lt;/p>
-&lt;p>接下来解释一下参数和返回值的数据结构。&lt;/p>
-&lt;p>分别是&lt;code>TVMArgs&lt;/code>和&lt;code>TVMRetValue&lt;/code>,都使用了联合体&lt;code>TVMValue&lt;/code>对数据进行打包并进行了运算符重载和用于数据传递的基本方法。&lt;/p>
-&lt;p>以上所有的实现基本都在&lt;code>include/tvm/runtime/packed_func.h&lt;/code>、&lt;code>include/tvm/runtime/registry.h&lt;/code>和&lt;code>src/runtime/registry.cc&lt;/code>&lt;/p>
-&lt;p>&lt;code>Python&lt;/code>封装了&lt;code>ctypes&lt;/code>库，能够通过&lt;code>name&lt;/code>查找全局注册的C++函数并获得函数句柄，调用后得到传回的返回值。
-其中对数据类型的包装也是TVM实现任意语言互相调用的关键.&lt;/p></description></item><item><title>TVM代码库解析：Relay层结构与优化Pass</title><link>https://KDZZZZZZ.github.io/posts/tvm%E4%BB%A3%E7%A0%81%E5%BA%93%E8%A7%A3%E6%9E%90relay%E5%B1%82%E7%BB%93%E6%9E%84%E4%B8%8E%E4%BC%98%E5%8C%96pass/</link><pubDate>Tue, 28 Jan 2025 00:00:00 +0800</pubDate><guid>https://KDZZZZZZ.github.io/posts/tvm%E4%BB%A3%E7%A0%81%E5%BA%93%E8%A7%A3%E6%9E%90relay%E5%B1%82%E7%BB%93%E6%9E%84%E4%B8%8E%E4%BC%98%E5%8C%96pass/</guid><description>&lt;p>relay层主要由数据结构类(如Constant)和节点类(如ConstantNode)组成。
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Compiler on Oops</title><link>https://KDZZZZZZ.github.io/tags/compiler/</link><description>Recent content in Compiler on Oops</description><generator>Hugo -- 0.143.1</generator><language>en-us</language><lastBuildDate>Tue, 28 Jan 2025 00:00:00 +0800</lastBuildDate><atom:link href="https://KDZZZZZZ.github.io/tags/compiler/index.xml" rel="self" type="application/rss+xml"/><item><title>TVM代码库解析：Relay层结构与优化Pass</title><link>https://KDZZZZZZ.github.io/posts/tvm%E4%BB%A3%E7%A0%81%E5%BA%93%E8%A7%A3%E6%9E%90relay%E5%B1%82%E7%BB%93%E6%9E%84%E4%B8%8E%E4%BC%98%E5%8C%96pass/</link><pubDate>Tue, 28 Jan 2025 00:00:00 +0800</pubDate><guid>https://KDZZZZZZ.github.io/posts/tvm%E4%BB%A3%E7%A0%81%E5%BA%93%E8%A7%A3%E6%9E%90relay%E5%B1%82%E7%BB%93%E6%9E%84%E4%B8%8E%E4%BC%98%E5%8C%96pass/</guid><description>&lt;p>relay层主要由数据结构类(如Constant)和节点类(如ConstantNode)组成。
 下面梳理一下他们的继承链。&lt;/p>
 &lt;p>ObjectRef → BaseExpr → RelayExpr → Constant&lt;/p>
 &lt;p>Object → BaseExprNode → RelayExprNode → ConstantNode&lt;/p>
@@ -160,41 +135,4 @@
 &lt;/ul>
 &lt;/li>
 &lt;/ul>
-&lt;p>有了对基类的功能认识，我们只需要继续了解类似&lt;code>Constant&lt;/code>和&lt;code>ConstantNode&lt;/code>类的其他主要类实现。&lt;/p></description></item><item><title>Welcome to My Blog</title><link>https://KDZZZZZZ.github.io/posts/welcome-to-my-blog/</link><pubDate>Sun, 29 Dec 2024 00:00:00 +0000</pubDate><guid>https://KDZZZZZZ.github.io/posts/welcome-to-my-blog/</guid><description>&lt;h2 id="welcome">Welcome!&lt;/h2>
-&lt;p>Hello everyone! This is my new blog built with Hugo. I&amp;rsquo;m excited to share my thoughts and experiences here.&lt;/p>
-&lt;h3 id="what-to-expect">What to Expect&lt;/h3>
-&lt;p>In this blog, I plan to write about:&lt;/p>
-&lt;ol>
-&lt;li>Technology and Programming&lt;/li>
-&lt;li>Learning experiences&lt;/li>
-&lt;li>Personal growth&lt;/li>
-&lt;li>Interesting projects&lt;/li>
-&lt;/ol>
-&lt;h3 id="why-i-started-blogging">Why I Started Blogging&lt;/h3>
-&lt;p>I believe writing is a great way to:&lt;/p>
-&lt;ul>
-&lt;li>Organize thoughts&lt;/li>
-&lt;li>Share knowledge&lt;/li>
-&lt;li>Document learning journey&lt;/li>
-&lt;li>Connect with like-minded people&lt;/li>
-&lt;/ul>
-&lt;p>Stay tuned for more posts!&lt;/p></description></item><item><title>我的第一篇博客</title><link>https://KDZZZZZZ.github.io/posts/my-first-post/</link><pubDate>Sat, 28 Dec 2024 20:41:44 +0800</pubDate><guid>https://KDZZZZZZ.github.io/posts/my-first-post/</guid><description>&lt;h1 id="欢迎来到我的博客">欢迎来到我的博客！&lt;/h1>
-&lt;p>这是我用 Hugo 搭建的新博客的第一篇文章。我很高兴能在这里开始分享我的想法和经历。&lt;/p>
-&lt;h2 id="期待">期待&lt;/h2>
-&lt;p>我会在这里写一些我感兴趣的话题。敬请期待更多内容！&lt;/p></description></item><item><title>Hello World</title><link>https://KDZZZZZZ.github.io/posts/hello-world/</link><pubDate>Sat, 28 Dec 2024 00:00:00 +0000</pubDate><guid>https://KDZZZZZZ.github.io/posts/hello-world/</guid><description>&lt;h2 id="hello-world">Hello, World!&lt;/h2>
-&lt;p>This is my first blog post. Here, I&amp;rsquo;ll share some interesting tech insights and life experiences.&lt;/p>
-&lt;h3 id="why-start-a-blog">Why Start a Blog?&lt;/h3>
-&lt;p>Blogging helps me:&lt;/p>
-&lt;ol>
-&lt;li>Document my learning journey&lt;/li>
-&lt;li>Share technical insights&lt;/li>
-&lt;li>Connect with like-minded people&lt;/li>
-&lt;/ol>
-&lt;h3 id="future-plans">Future Plans&lt;/h3>
-&lt;p>I plan to write about:&lt;/p>
-&lt;ul>
-&lt;li>Programming techniques&lt;/li>
-&lt;li>Learning experiences&lt;/li>
-&lt;li>Life reflections&lt;/li>
-&lt;/ul>
-&lt;p>Stay tuned!&lt;/p></description></item></channel></rss>
+&lt;p>有了对基类的功能认识，我们只需要继续了解类似&lt;code>Constant&lt;/code>和&lt;code>ConstantNode&lt;/code>类的其他主要类实现。&lt;/p></description></item></channel></rss>
