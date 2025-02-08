@@ -209,4 +209,70 @@
 &lt;li>Learning experiences&lt;/li>
 &lt;li>Life reflections&lt;/li>
 &lt;/ul>
-&lt;p>Stay tuned!&lt;/p></description></item></channel></rss>
+&lt;p>Stay tuned!&lt;/p></description></item><item><title/><link>https://KDZZZZZZ.github.io/posts/optimizations/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://KDZZZZZZ.github.io/posts/optimizations/</guid><description>&lt;h1 id="tvm-relay-ir-optimization-methods">TVM Relay IR Optimization Methods&lt;/h1>
+&lt;h2 id="优化方法概述">优化方法概述&lt;/h2>
+&lt;p>本文档详细介绍了TVM Relay IR中实现的各种优化方法。每个优化方法都包含其数学原理、算法实现和实际应用示例。这些优化方法共同构成了TVM的优化体系,旨在提高深度学习模型的执行效率。&lt;/p>
+&lt;h2 id="table-of-contents">Table of Contents&lt;/h2>
+&lt;ul>
+&lt;li>&lt;a href="#tvm-relay-ir-optimization-methods">TVM Relay IR Optimization Methods&lt;/a>
+&lt;ul>
+&lt;li>&lt;a href="#%E4%BC%98%E5%8C%96%E6%96%B9%E6%B3%95%E6%A6%82%E8%BF%B0">优化方法概述&lt;/a>&lt;/li>
+&lt;li>&lt;a href="#table-of-contents">Table of Contents&lt;/a>
+&lt;ul>
+&lt;li>&lt;a href="#1-dead_codecc---%E6%AD%BB%E4%BB%A3%E7%A0%81%E6%B6%88%E9%99%A4-%E7%BB%86%E5%8C%96">1. &lt;code>dead_code.cc&lt;/code> - 死代码消除 细化&lt;/a>&lt;/li>
+&lt;li>&lt;a href="#2-eliminate_common_subexprcc---%E5%85%AC%E5%85%B1%E5%AD%90%E8%A1%A8%E8%BE%BE%E5%BC%8F%E6%B6%88%E9%99%A4-%E7%BB%86%E5%8C%96">2. &lt;code>eliminate_common_subexpr.cc&lt;/code> - 公共子表达式消除 细化&lt;/a>&lt;/li>
+&lt;li>&lt;a href="#3-fold_constantcc---%E5%B8%B8%E9%87%8F%E6%8A%98%E5%8F%A0-%E7%BB%86%E5%8C%96">3. &lt;code>fold_constant.cc&lt;/code> - 常量折叠 细化&lt;/a>&lt;/li>
+&lt;li>&lt;a href="#4-fuse_opscc---%E7%AE%97%E5%AD%90%E8%9E%8D%E5%90%88%E4%BC%98%E5%8C%96-%E7%BB%86%E5%8C%96">4. &lt;code>fuse_ops.cc&lt;/code> - 算子融合优化 细化&lt;/a>&lt;/li>
+&lt;li>&lt;a href="#5-transform_layouth-convert_layoutcc---%E5%B8%83%E5%B1%80%E8%BD%AC%E6%8D%A2-%E7%BB%86%E5%8C%96">5. &lt;code>transform_layout.h&lt;/code>, &lt;code>convert_layout.cc&lt;/code> - 布局转换 细化&lt;/a>&lt;/li>
+&lt;li>&lt;a href="#6-type_infercc---%E7%B1%BB%E5%9E%8B%E6%8E%A8%E6%96%AD-%E7%BB%86%E5%8C%96">6. &lt;code>type_infer.cc&lt;/code> - 类型推断 细化&lt;/a>&lt;/li>
+&lt;li>&lt;a href="#7-to_a_normal_formcc---a-%E8%8C%83%E5%BC%8F%E8%BD%AC%E6%8D%A2-%E7%BB%86%E5%8C%96">7. &lt;code>to_a_normal_form.cc&lt;/code> - A-范式转换 细化&lt;/a>&lt;/li>
+&lt;li>&lt;a href="#8-to_graph_normal_formcc---%E5%9B%BE%E8%8C%83%E5%BC%8F%E8%BD%AC%E6%8D%A2-%E7%BB%86%E5%8C%96">8. &lt;code>to_graph_normal_form.cc&lt;/code> - 图范式转换 细化&lt;/a>&lt;/li>
+&lt;li>&lt;a href="#9-partial_evalcc---%E9%83%A8%E5%88%86%E6%B1%82%E5%80%BC-%E7%BB%86%E5%8C%96">9. &lt;code>partial_eval.cc&lt;/code> - 部分求值 细化&lt;/a>&lt;/li>
+&lt;li>&lt;a href="#10-loop_partitioncc---%E5%BE%AA%E7%8E%AF%E5%88%86%E5%9D%97%E4%BC%98%E5%8C%96-%E7%BB%86%E5%8C%96">10. &lt;code>loop_partition.cc&lt;/code> - 循环分块优化 细化&lt;/a>&lt;/li>
+&lt;li>&lt;a href="#11-loop_unrollcc---%E5%BE%AA%E7%8E%AF%E5%B1%95%E5%BC%80-%E7%BB%86%E5%8C%96">11. &lt;code>loop_unroll.cc&lt;/code> - 循环展开 细化&lt;/a>&lt;/li>
+&lt;li>&lt;a href="#12-loop_vectorizecc---%E5%BE%AA%E7%8E%AF%E5%90%91%E9%87%8F%E5%8C%96-%E7%BB%86%E5%8C%96">12. &lt;code>loop_vectorize.cc&lt;/code> - 循环向量化 细化&lt;/a>&lt;/li>
+&lt;li>&lt;a href="#13-memory_promotioncc---%E5%86%85%E5%AD%98%E6%8F%90%E5%8D%87%E4%BC%98%E5%8C%96-%E7%BB%86%E5%8C%96">13. &lt;code>memory_promotion.cc&lt;/code> - 内存提升优化 细化&lt;/a>&lt;/li>
+&lt;li>&lt;a href="#14-simplify_exprcc---%E8%A1%A8%E8%BE%BE%E5%BC%8F%E7%AE%80%E5%8C%96-%E7%BB%86%E5%8C%96">14. &lt;code>simplify_expr.cc&lt;/code> - 表达式简化 细化&lt;/a>&lt;/li>
+&lt;li>&lt;a href="#15-storage_rewritecc---%E5%AD%98%E5%82%A8%E9%87%8D%E5%86%99%E4%BC%98%E5%8C%96-%E7%BB%86%E5%8C%96">15. &lt;code>storage_rewrite.cc&lt;/code> - 存储重写优化 细化&lt;/a>&lt;/li>
+&lt;li>&lt;a href="#16-parallelizecc---%E5%B9%B6%E8%A1%8C%E5%8C%96%E4%BC%98%E5%8C%96-%E7%BB%86%E5%8C%96">16. &lt;code>parallelize.cc&lt;/code> - 并行化优化 细化&lt;/a>&lt;/li>
+&lt;li>&lt;a href="#17-memory_alloccc---%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E4%BC%98%E5%8C%96-%E7%BB%86%E5%8C%96">17. &lt;code>memory_alloc.cc&lt;/code> - 内存分配优化 细化&lt;/a>&lt;/li>
+&lt;li>&lt;a href="#18-dataflow_analysiscc---%E6%95%B0%E6%8D%AE%E6%B5%81%E5%88%86%E6%9E%90-%E7%BB%86%E5%8C%96">18. &lt;code>dataflow_analysis.cc&lt;/code> - 数据流分析 细化&lt;/a>&lt;/li>
+&lt;li>&lt;a href="#19-loop_invariantcc---%E5%BE%AA%E7%8E%AF%E4%B8%8D%E5%8F%98%E5%BC%8F%E5%A4%96%E6%8F%90-%E7%BB%86%E5%8C%96">19. &lt;code>loop_invariant.cc&lt;/code> - 循环不变式外提 细化&lt;/a>&lt;/li>
+&lt;li>&lt;a href="#20-bound_check_eliminatecc---%E8%BE%B9%E7%95%8C%E6%A3%80%E6%9F%A5%E6%B6%88%E9%99%A4-%E7%BB%86%E5%8C%96">20. &lt;code>bound_check_eliminate.cc&lt;/code> - 边界检查消除 细化&lt;/a>&lt;/li>
+&lt;li>&lt;a href="#21-common_subexp_eliminatecc---%E5%85%AC%E5%85%B1%E5%AD%90%E8%A1%A8%E8%BE%BE%E5%BC%8F%E6%B6%88%E9%99%A4-%E7%BB%86%E5%8C%96">21. &lt;code>common_subexp_eliminate.cc&lt;/code> - 公共子表达式消除 细化&lt;/a>&lt;/li>
+&lt;li>&lt;a href="#22-dead_code_eliminatecc---%E6%AD%BB%E4%BB%A3%E7%A0%81%E6%B6%88%E9%99%A4-%E7%BB%86%E5%8C%96">22. &lt;code>dead_code_eliminate.cc&lt;/code> - 死代码消除 细化&lt;/a>&lt;/li>
+&lt;li>&lt;a href="#23-strength_reductioncc---%E5%BC%BA%E5%BA%A6%E6%B6%88%E5%87%8F-%E7%BB%86%E5%8C%96">23. &lt;code>strength_reduction.cc&lt;/code> - 强度消减 细化&lt;/a>&lt;/li>
+&lt;li>&lt;a href="#24-register_allocatecc---%E5%AF%84%E5%AD%98%E5%99%A8%E5%88%86%E9%85%8D-%E7%BB%86%E5%8C%96">24. &lt;code>register_allocate.cc&lt;/code> - 寄存器分配 细化&lt;/a>&lt;/li>
+&lt;li>&lt;a href="#25-vectorizecc---%E5%90%91%E9%87%8F%E5%8C%96%E4%BC%98%E5%8C%96-%E7%BB%86%E5%8C%96">25. &lt;code>vectorize.cc&lt;/code> - 向量化优化 细化&lt;/a>&lt;/li>
+&lt;li>&lt;a href="#26-loop_unrollcc---%E5%BE%AA%E7%8E%AF%E5%B1%95%E5%BC%80%E4%BC%98%E5%8C%96-%E7%BB%86%E5%8C%96">26. &lt;code>loop_unroll.cc&lt;/code> - 循环展开优化 细化&lt;/a>&lt;/li>
+&lt;li>&lt;a href="#27-inline_expandcc---%E5%86%85%E8%81%94%E5%B1%95%E5%BC%80%E4%BC%98%E5%8C%96-%E7%BB%86%E5%8C%96">27. &lt;code>inline_expand.cc&lt;/code> - 内联展开优化 细化&lt;/a>&lt;/li>
+&lt;li>&lt;a href="#28-const_propagationcc---%E5%B8%B8%E9%87%8F%E4%BC%A0%E6%92%AD%E4%BC%98%E5%8C%96-%E7%BB%86%E5%8C%96">28. &lt;code>const_propagation.cc&lt;/code> - 常量传播优化 细化&lt;/a>&lt;/li>
+&lt;li>&lt;a href="#29-alias_analysiscc---%E5%88%AB%E5%90%8D%E5%88%86%E6%9E%90-%E7%BB%86%E5%8C%96">29. &lt;code>alias_analysis.cc&lt;/code> - 别名分析 细化&lt;/a>&lt;/li>
+&lt;li>&lt;a href="#31-mem2regcc---%E5%86%85%E5%AD%98%E5%88%B0%E5%AF%84%E5%AD%98%E5%99%A8%E6%8F%90%E5%8D%87-%E7%BB%86%E5%8C%96">31. &lt;code>mem2reg.cc&lt;/code> - 内存到寄存器提升 细化&lt;/a>&lt;/li>
+&lt;li>&lt;a href="#32-gvncc---%E5%85%A8%E5%B1%80%E5%80%BC%E7%BC%96%E5%8F%B7-%E7%BB%86%E5%8C%96">32. &lt;code>gvn.cc&lt;/code> - 全局值编号 细化&lt;/a>&lt;/li>
+&lt;li>&lt;a href="#33-loop_fusioncc---%E5%BE%AA%E7%8E%AF%E8%9E%8D%E5%90%88%E4%BC%98%E5%8C%96-%E7%BB%86%E5%8C%96">33. &lt;code>loop_fusion.cc&lt;/code> - 循环融合优化 细化&lt;/a>&lt;/li>
+&lt;li>&lt;a href="#34-loop_tilingcc---%E5%BE%AA%E7%8E%AF%E5%88%86%E5%9D%97%E4%BC%98%E5%8C%96-%E7%BB%86%E5%8C%96">34. &lt;code>loop_tiling.cc&lt;/code> - 循环分块优化 细化&lt;/a>&lt;/li>
+&lt;li>&lt;a href="#35-tail_call_optcc---%E5%B0%BE%E8%B0%83%E7%94%A8%E4%BC%98%E5%8C%96-%E7%BB%86%E5%8C%96">35. &lt;code>tail_call_opt.cc&lt;/code> - 尾调用优化 细化&lt;/a>&lt;/li>
+&lt;li>&lt;a href="#36-autovectorizecc---%E8%87%AA%E5%8A%A8%E5%90%91%E9%87%8F%E5%8C%96-%E7%BB%86%E5%8C%96">36. &lt;code>autovectorize.cc&lt;/code> - 自动向量化 细化&lt;/a>&lt;/li>
+&lt;li>&lt;a href="#37-dead_store_elimcc---%E6%AD%BB%E5%AD%98%E5%82%A8%E6%B6%88%E9%99%A4%E4%BC%98%E5%8C%96-%E7%BB%86%E5%8C%96">37. &lt;code>dead_store_elim.cc&lt;/code> - 死存储消除优化 细化&lt;/a>&lt;/li>
+&lt;li>&lt;a href="#38-strength_reductioncc---%E5%BC%BA%E5%BA%A6%E5%89%8A%E5%87%8F%E4%BC%98%E5%8C%96-%E7%BB%86%E5%8C%96">38. &lt;code>strength_reduction.cc&lt;/code> - 强度削减优化 细化&lt;/a>&lt;/li>
+&lt;li>&lt;a href="#39-register_alloccc---%E5%AF%84%E5%AD%98%E5%99%A8%E5%88%86%E9%85%8D%E4%BC%98%E5%8C%96-%E7%BB%86%E5%8C%96">39. &lt;code>register_alloc.cc&lt;/code> - 寄存器分配优化 细化&lt;/a>&lt;/li>
+&lt;li>&lt;a href="#40-inline_expansioncc---%E5%86%85%E8%81%94%E5%B1%95%E5%BC%80%E4%BC%98%E5%8C%96-%E7%BB%86%E5%8C%96">40. &lt;code>inline_expansion.cc&lt;/code> - 内联展开优化 细化&lt;/a>&lt;/li>
+&lt;li>&lt;a href="#41-loop_unswitchcc---%E5%BE%AA%E7%8E%AF%E4%B8%8D%E5%8F%98%E9%87%8F%E5%A4%96%E6%8F%90%E4%BC%98%E5%8C%96-%E7%BB%86%E5%8C%96">41. &lt;code>loop_unswitch.cc&lt;/code> - 循环不变量外提优化 细化&lt;/a>&lt;/li>
+&lt;li>&lt;a href="#42-instruction_combinecc---%E6%8C%87%E4%BB%A4%E7%BB%84%E5%90%88%E4%BC%98%E5%8C%96-%E7%BB%86%E5%8C%96">42. &lt;code>instruction_combine.cc&lt;/code> - 指令组合优化 细化&lt;/a>&lt;/li>
+&lt;li>&lt;a href="#43-const_propagatecc---%E5%B8%B8%E9%87%8F%E4%BC%A0%E6%92%AD%E4%BC%98%E5%8C%96-%E7%BB%86%E5%8C%96">43. &lt;code>const_propagate.cc&lt;/code> - 常量传播优化 细化&lt;/a>&lt;/li>
+&lt;li>&lt;a href="#44-csecc---%E5%85%AC%E5%85%B1%E5%AD%90%E8%A1%A8%E8%BE%BE%E5%BC%8F%E6%B6%88%E9%99%A4-%E7%BB%86%E5%8C%96">44. &lt;code>cse.cc&lt;/code> - 公共子表达式消除 细化&lt;/a>&lt;/li>
+&lt;li>&lt;a href="#45-dcecc---%E6%AD%BB%E4%BB%A3%E7%A0%81%E6%B6%88%E9%99%A4%E4%BC%98%E5%8C%96-%E7%BB%86%E5%8C%96">45. &lt;code>dce.cc&lt;/code> - 死代码消除优化 细化&lt;/a>&lt;/li>
+&lt;li>&lt;a href="#46-licmcc---%E5%BE%AA%E7%8E%AF%E4%B8%8D%E5%8F%98%E4%BB%A3%E7%A0%81%E5%A4%96%E6%8F%90%E4%BC%98%E5%8C%96-%E7%BB%86%E5%8C%96">46. &lt;code>licm.cc&lt;/code> - 循环不变代码外提优化 细化&lt;/a>&lt;/li>
+&lt;li>&lt;a href="#47-loop_fusioncc---%E5%BE%AA%E7%8E%AF%E8%9E%8D%E5%90%88%E4%BC%98%E5%8C%96-%E7%BB%86%E5%8C%96">47. &lt;code>loop_fusion.cc&lt;/code> - 循环融合优化 细化&lt;/a>&lt;/li>
+&lt;li>&lt;a href="#48-loop_peelingcc---%E5%BE%AA%E7%8E%AF%E5%89%A5%E7%A6%BB%E4%BC%98%E5%8C%96-%E7%BB%86%E5%8C%96">48. &lt;code>loop_peeling.cc&lt;/code> - 循环剥离优化 细化&lt;/a>&lt;/li>
+&lt;li>&lt;a href="#49-vectorizationcc---%E8%87%AA%E5%8A%A8%E5%90%91%E9%87%8F%E5%8C%96%E4%BC%98%E5%8C%96-%E7%BB%86%E5%8C%96">49. &lt;code>vectorization.cc&lt;/code> - 自动向量化优化 细化&lt;/a>&lt;/li>
+&lt;li>&lt;a href="#50-loop_tilingcc---%E5%BE%AA%E7%8E%AF%E5%88%86%E5%9D%97%E4%BC%98%E5%8C%96-%E7%BB%86%E5%8C%96">50. &lt;code>loop_tiling.cc&lt;/code> - 循环分块优化 细化&lt;/a>&lt;/li>
+&lt;li>&lt;a href="#51-tail_callcc---%E5%B0%BE%E8%B0%83%E7%94%A8%E4%BC%98%E5%8C%96-%E7%BB%86%E5%8C%96">51. &lt;code>tail_call.cc&lt;/code> - 尾调用优化 细化&lt;/a>&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;/ul>
+&lt;h3 id="1-dead_codecc---死代码消除-细化">1. &lt;code>dead_code.cc&lt;/code> - 死代码消除 细化&lt;/h3>
+&lt;p>&lt;strong>优化目的&lt;/strong>:&lt;/p></description></item></channel></rss>
