@@ -196,5 +196,21 @@ a:hover {
     padding-top: 20px !important;
     border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
 }
+
+/* 添加KaTeX样式覆盖 */
+.katex {
+    font-size: 1.1em !important;
+}
+
+.math-display {
+    overflow-x: auto;
+    overflow-y: hidden;
+    max-width: 100%;
+    padding: 1em 0;
+}
 </style>
+
+{{- /* 引入KaTeX支持 */ -}}
+{{ partial "katex.html" . }}
+
 {{- /* Head custom content area end */ -}}
