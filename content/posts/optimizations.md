@@ -75,6 +75,8 @@
 **活跃变量分析数学原理**:
 - **数据流方程推导**:
   对于基本块B,定义:
+
+
   ```math
   \begin{aligned}
   IN[B] &= \bigcup_{S \in succ(B)} OUT[S] \\
@@ -103,6 +105,8 @@ def build_cfg(expr):
 **消除条件证明**:
 - **不可达代码定理**:
   设程序入口为$B_0$,当且仅当存在路径$B_0 \rightarrow^* B$时,块B为可达。通过深度优先遍历可达性集合:
+
+
   ```math
   Reachable = \{B_0\} \cup \bigcup_{B \in Reachable} succ(B)
   ```
@@ -136,6 +140,8 @@ def build_cfg(expr):
 **哈希表设计**:
 - **表达式指纹计算**:
   采用Merkle树结构哈希:
+
+
   ```math
   hash(e) = hash(op) \oplus \bigoplus_{arg \in args} hash(arg)
   ```
@@ -144,6 +150,8 @@ def build_cfg(expr):
 **替换策略数学证明**:
 - **语义等价性条件**:
   两个表达式$e_1,e_2$可替换当且仅当:
+
+
   ```math
   \forall \sigma \in \Sigma, \llbracket e_1 \rrbracket_\sigma = \llbracket e_2 \rrbracket_\sigma
   ```
@@ -187,6 +195,8 @@ def eval(expr, env):
 
 **折叠条件判定**:
 - **完全折叠条件**:
+
+
   ```math
   \frac{\forall v \in vars(e), \sigma(v) \neq \top \land \sigma(v) \neq \bot}{e \downarrow}
   ```
@@ -217,6 +227,8 @@ T safe_fold(Expr e) {
 **算子依赖图建模**:
 - **计算图可达性分析**:
   定义算子间数据依赖关系为有向边,构造邻接矩阵$A$:
+
+
   ```math
   A_{ij} = \begin{cases}
   1 & \text{算子}i\text{的输出是算子}j\text{的输入} \\
@@ -224,6 +236,8 @@ T safe_fold(Expr e) {
   \end{cases}
   ```
   可达性矩阵$R$通过Warshall算法计算:
+
+
   ```math
   R = \bigvee_{k=1}^n A^{[k]} \quad \text{其中} A^{[k]} = A^{[k-1]} \vee (A^{[k-1]} \cdot A)
   ```
@@ -272,6 +286,8 @@ class FusionPatternMatcher {
 **张量布局代数**:
 - **布局变换矩阵**:
   定义存储顺序为排列矩阵$P \in \{0,1\}^{n×n}$,例如NHWC→NCHW转换:
+
+
   ```math
   P = \begin{bmatrix}
   1 & 0 & 0 & 0 \\
@@ -285,6 +301,8 @@ class FusionPatternMatcher {
 **数据局部性优化**:
 - **缓存行对齐公式**:
   要求转换后张量维度满足:
+
+
   ```math
   \prod_{i=k}^n d_i \equiv 0 \mod (cache\_line\_size / sizeof(dtype))
   ```
@@ -362,6 +380,8 @@ def solve_constraints(constraints):
 **λ演算规范化原理**:
 - **ANF形式化定义**:
   任何表达式$e$可转换为:
+
+
   ```math
   e \Rightarrow \text{let}~x = e_1~\text{in}~e_2 \quad \text{或} \quad v
   ```
@@ -430,6 +450,8 @@ Graph compress_graph(Graph g) {
 
 **部分求值格理论**:
 - **三值抽象域**:
+
+
   $$ \mathbb{D} = \{ \bot, \top, \text{Concrete}(v) \} $$
   其中:
   - $\bot$: 不可计算
@@ -463,6 +485,7 @@ class PartialEvaluator:
 **分块尺寸计算原理**:
 - **缓存容量约束**:
   设缓存行大小为$C$,数组元素大小为$s$,则最优分块尺寸$B$满足:
+  
   ```math
   B = \left\lfloor \sqrt{\frac{C \times L}{s \times k}} \right\rfloor
   ```
@@ -472,6 +495,7 @@ class PartialEvaluator:
 **数据局部性优化**:
 - **跨步访问消除**:
   分块后内存访问模式满足:
+  
   ```math
   \forall i,j \in [0,B), \frac{|addr(i+1,j) - addr(i,j)|}{s} \leq cache\_line\_size
   ```
@@ -499,6 +523,7 @@ void tiling_transform(LoopNode* loop) {
 **展开因子选择模型**:
 - **寄存器压力约束**:
   最大展开因子$J_{max}$满足:
+  
   ```math
   J_{max} = \left\lfloor \frac{R_{total} - R_{used}}{R_{unroll}} \right\rfloor
   ```
@@ -509,6 +534,7 @@ void tiling_transform(LoopNode* loop) {
 **指令级并行优化**:
 - **依赖链长度分析**:
   设最长依赖链长度为$D$, 则最小展开因子:
+  
   ```math
   J_{min} = \lceil D / issue\_width \rceil
   ```
@@ -583,6 +609,7 @@ bool auto_vectorize(Loop loop) {
 **数据生命周期分析**:
 - **活性区间计算**:
   对每个内存对象$m$,定义其活性区间为:
+  
   ```math
   [t_{def}, t_{last\_use}]
   ```
