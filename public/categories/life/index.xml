@@ -2,17 +2,17 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Life on Oops</title>
-    <link>http://localhost:64303/categories/life/</link>
+    <link>https://KDZZZZZZ.github.io/categories/life/</link>
     <description>Recent content in Life on Oops</description>
     <generator>Hugo</generator>
     <language>en-us</language>
     <lastBuildDate>Sun, 29 Dec 2024 00:00:00 +0000</lastBuildDate>
-    <atom:link href="http://localhost:64303/categories/life/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="https://KDZZZZZZ.github.io/categories/life/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Welcome to My Blog</title>
-      <link>http://localhost:64303/posts/welcome-to-my-blog/</link>
+      <link>https://KDZZZZZZ.github.io/posts/welcome-to-my-blog/</link>
       <pubDate>Sun, 29 Dec 2024 00:00:00 +0000</pubDate>
-      <guid>http://localhost:64303/posts/welcome-to-my-blog/</guid>
+      <guid>https://KDZZZZZZ.github.io/posts/welcome-to-my-blog/</guid>
       <description>&lt;h2 id=&#34;welcome&#34;&gt;Welcome!&lt;/h2&gt;&#xA;&lt;p&gt;Hello everyone! This is my new blog built with Hugo. I&amp;rsquo;m excited to share my thoughts and experiences here.&lt;/p&gt;&#xA;&lt;h3 id=&#34;what-to-expect&#34;&gt;What to Expect&lt;/h3&gt;&#xA;&lt;p&gt;In this blog, I plan to write about:&lt;/p&gt;&#xA;&lt;ol&gt;&#xA;&lt;li&gt;Technology and Programming&lt;/li&gt;&#xA;&lt;li&gt;Learning experiences&lt;/li&gt;&#xA;&lt;li&gt;Personal growth&lt;/li&gt;&#xA;&lt;li&gt;Interesting projects&lt;/li&gt;&#xA;&lt;/ol&gt;&#xA;&lt;h3 id=&#34;why-i-started-blogging&#34;&gt;Why I Started Blogging&lt;/h3&gt;&#xA;&lt;p&gt;I believe writing is a great way to:&lt;/p&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;Organize thoughts&lt;/li&gt;&#xA;&lt;li&gt;Share knowledge&lt;/li&gt;&#xA;&lt;li&gt;Document learning journey&lt;/li&gt;&#xA;&lt;li&gt;Connect with like-minded people&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;p&gt;Stay tuned for more posts!&lt;/p&gt;</description>
     </item>
   </channel>

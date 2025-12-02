@@ -2,31 +2,31 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Categories on Oops</title>
-    <link>http://localhost:64303/categories/</link>
+    <link>https://KDZZZZZZ.github.io/categories/</link>
     <description>Recent content in Categories on Oops</description>
     <generator>Hugo</generator>
     <language>en-us</language>
     <lastBuildDate>Tue, 28 Jan 2025 00:00:00 +0800</lastBuildDate>
-    <atom:link href="http://localhost:64303/categories/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="https://KDZZZZZZ.github.io/categories/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Journal</title>
-      <link>http://localhost:64303/categories/journal/</link>
+      <link>https://KDZZZZZZ.github.io/categories/journal/</link>
       <pubDate>Tue, 28 Jan 2025 00:00:00 +0800</pubDate>
-      <guid>http://localhost:64303/categories/journal/</guid>
+      <guid>https://KDZZZZZZ.github.io/categories/journal/</guid>
       <description></description>
     </item>
     <item>
       <title>Technical</title>
-      <link>http://localhost:64303/categories/technical/</link>
+      <link>https://KDZZZZZZ.github.io/categories/technical/</link>
       <pubDate>Tue, 28 Jan 2025 00:00:00 +0800</pubDate>
-      <guid>http://localhost:64303/categories/technical/</guid>
+      <guid>https://KDZZZZZZ.github.io/categories/technical/</guid>
       <description></description>
     </item>
     <item>
       <title>Life</title>
-      <link>http://localhost:64303/categories/life/</link>
+      <link>https://KDZZZZZZ.github.io/categories/life/</link>
       <pubDate>Sun, 29 Dec 2024 00:00:00 +0000</pubDate>
-      <guid>http://localhost:64303/categories/life/</guid>
+      <guid>https://KDZZZZZZ.github.io/categories/life/</guid>
       <description></description>
     </item>
   </channel>

@@ -2,52 +2,52 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Tags on Oops</title>
-    <link>http://localhost:64303/tags/</link>
+    <link>https://KDZZZZZZ.github.io/tags/</link>
     <description>Recent content in Tags on Oops</description>
     <generator>Hugo</generator>
     <language>en-us</language>
     <lastBuildDate>Tue, 28 Jan 2025 00:00:00 +0800</lastBuildDate>
-    <atom:link href="http://localhost:64303/tags/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="https://KDZZZZZZ.github.io/tags/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Compiler</title>
-      <link>http://localhost:64303/tags/compiler/</link>
+      <link>https://KDZZZZZZ.github.io/tags/compiler/</link>
       <pubDate>Tue, 28 Jan 2025 00:00:00 +0800</pubDate>
-      <guid>http://localhost:64303/tags/compiler/</guid>
+      <guid>https://KDZZZZZZ.github.io/tags/compiler/</guid>
       <description></description>
     </item>
     <item>
       <title>Deep Learning</title>
-      <link>http://localhost:64303/tags/deep-learning/</link>
+      <link>https://KDZZZZZZ.github.io/tags/deep-learning/</link>
       <pubDate>Tue, 28 Jan 2025 00:00:00 +0800</pubDate>
-      <guid>http://localhost:64303/tags/deep-learning/</guid>
+      <guid>https://KDZZZZZZ.github.io/tags/deep-learning/</guid>
       <description></description>
     </item>
     <item>
       <title>TVM</title>
-      <link>http://localhost:64303/tags/tvm/</link>
+      <link>https://KDZZZZZZ.github.io/tags/tvm/</link>
       <pubDate>Tue, 28 Jan 2025 00:00:00 +0800</pubDate>
-      <guid>http://localhost:64303/tags/tvm/</guid>
+      <guid>https://KDZZZZZZ.github.io/tags/tvm/</guid>
       <description></description>
     </item>
     <item>
       <title>Blog</title>
-      <link>http://localhost:64303/tags/blog/</link>
+      <link>https://KDZZZZZZ.github.io/tags/blog/</link>
       <pubDate>Sun, 29 Dec 2024 00:00:00 +0000</pubDate>
-      <guid>http://localhost:64303/tags/blog/</guid>
+      <guid>https://KDZZZZZZ.github.io/tags/blog/</guid>
       <description></description>
     </item>
     <item>
       <title>Personal</title>
-      <link>http://localhost:64303/tags/personal/</link>
+      <link>https://KDZZZZZZ.github.io/tags/personal/</link>
       <pubDate>Sun, 29 Dec 2024 00:00:00 +0000</pubDate>
-      <guid>http://localhost:64303/tags/personal/</guid>
+      <guid>https://KDZZZZZZ.github.io/tags/personal/</guid>
       <description></description>
     </item>
     <item>
       <title>博客</title>
-      <link>http://localhost:64303/tags/%E5%8D%9A%E5%AE%A2/</link>
+      <link>https://KDZZZZZZ.github.io/tags/%E5%8D%9A%E5%AE%A2/</link>
       <pubDate>Sat, 28 Dec 2024 20:41:44 +0800</pubDate>
-      <guid>http://localhost:64303/tags/%E5%8D%9A%E5%AE%A2/</guid>
+      <guid>https://KDZZZZZZ.github.io/tags/%E5%8D%9A%E5%AE%A2/</guid>
       <description></description>
     </item>
   </channel>

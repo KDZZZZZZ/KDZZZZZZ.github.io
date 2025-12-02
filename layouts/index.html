@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OOPS.BLOG</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
     <script src="/js/highlighter.js" defer></script>
     <style>
         @keyframes spin {
@@ -129,7 +134,7 @@
         }
     </style>
 </head>
-<body class="bg-[#FDFDFD] text-slate-900 font-sans overflow-hidden transition-colors duration-1000">
+<body class="bg-[#FDFDFD] dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-sans overflow-hidden transition-colors duration-1000">
     <div class="background-curves"></div>
     <div class="grain-overlay"></div>
 
@@ -137,14 +142,20 @@
     <header class="fixed top-0 left-0 w-full p-8 flex justify-between items-center z-50">
         <div class="flex items-center gap-2 group cursor-pointer" onclick="window.location.href='/'">
             <div class="w-3 h-3 rounded-full bg-black animate-pulse group-hover:bg-gradient-to-r group-hover:from-cyan-400 group-hover:to-purple-400"></div>
-            <span class="font-bold text-xl tracking-tight text-slate-800 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-cyan-400 group-hover:via-purple-400 group-hover:to-green-400 transition-all duration-300">OOPS.BLOG</span>
+            <span class="font-bold text-xl tracking-tight text-slate-800 dark:text-slate-100 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-cyan-400 group-hover:via-purple-400 group-hover:to-green-400 transition-all duration-300">OOPS.BLOG</span>
         </div>
-        <nav class="hidden md:flex gap-8 text-sm font-medium text-slate-400">
-            <a href="/" class="hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-cyan-400 hover:to-purple-400 transition-colors">Home</a>
-            <a href="/about" class="hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-purple-400 hover:to-pink-400 transition-colors">About</a>
-            <a href="/posts" class="hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-green-400 hover:to-cyan-400 transition-colors">Blogs</a>
-            <a href="/contact" class="hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-pink-400 hover:to-orange-400 transition-colors">Contact</a>
-        </nav>
+        <div class="flex items-center gap-8">
+            <nav class="hidden md:flex gap-8 text-sm font-medium text-slate-400 dark:text-slate-400">
+                <a href="/" class="hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-cyan-400 hover:to-purple-400 transition-colors">Home</a>
+                <a href="/about" class="hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-purple-400 hover:to-pink-400 transition-colors">About</a>
+                <a href="/posts" class="hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-green-400 hover:to-cyan-400 transition-colors">Blogs</a>
+                <a href="/contact" class="hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-pink-400 hover:to-orange-400 transition-colors">Contact</a>
+            </nav>
+            <button id="theme-toggle" class="text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition-colors" aria-label="Toggle Dark Mode">
+                <svg id="theme-icon-moon" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+                <svg id="theme-icon-sun" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+            </button>
+        </div>
     </header>
 
     <!-- Main Content Area -->
@@ -168,12 +179,12 @@
 
             <!-- Solid White Fluid Block + Oops Content -->
             <div class="absolute inset-0 flex items-center justify-center z-10">
-                <div class="absolute inset-0 bg-white shadow-2xl animate-morph-blob"></div>
+                <div class="absolute inset-0 bg-white dark:bg-slate-800 shadow-2xl animate-morph-blob transition-colors duration-1000"></div>
                 
                 <!-- Oops Content -->
                 <div class="absolute inset-0 flex flex-col items-center justify-center z-30 animate-float-text pointer-events-none">
-                    <h1 class="text-7xl md:text-8xl font-black tracking-tighter text-black drop-shadow-2xl">Oops</h1>
-                    <div class="mt-2 px-3 py-1 bg-black text-white text-[10px] font-mono tracking-[0.2em] rounded-full">SYSTEM_OVERLOAD</div>
+                    <h1 class="text-7xl md:text-8xl font-black tracking-tighter text-black dark:text-white drop-shadow-2xl transition-colors duration-1000">Oops</h1>
+                    <div class="mt-2 px-3 py-1 bg-black dark:bg-white text-white dark:text-black text-[10px] font-mono tracking-[0.2em] rounded-full transition-colors duration-1000">SYSTEM_OVERLOAD</div>
                 </div>
             </div>
 
@@ -183,7 +194,7 @@
             </div>
 
             <!-- Scroll Indicator -->
-            <div class="absolute -right-24 top-1/2 transform -translate-y-1/2 flex flex-col items-center gap-3 opacity-40">
+            <div class="hidden absolute -right-24 top-1/2 transform -translate-y-1/2 flex flex-col items-center gap-3 opacity-40">
                 <!-- Chevron Up -->
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="animate-bounce"><path d="m18 15-6-6-6 6"/></svg>
                 
@@ -195,11 +206,11 @@
     </main>
 
     <!-- Footer/Detail Panel -->
-    <div id="detail-panel" class="fixed bottom-0 left-0 w-full bg-white/80 backdrop-blur-md border-t border-slate-50 p-6 transition-transform duration-500 z-40 translate-y-full">
+    <div id="detail-panel" class="fixed bottom-0 left-0 w-full bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-t border-slate-50 dark:border-slate-800 p-6 transition-all duration-500 z-40 translate-y-full">
          <div class="max-w-5xl mx-auto flex justify-between items-center">
              <div>
                  <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Now Exploring</span>
-                 <p id="active-title" class="text-lg font-medium text-slate-800">Title</p>
+                 <p id="active-title" class="text-lg font-medium text-slate-800 dark:text-slate-100">Title</p>
              </div>
              <div class="flex items-center gap-3">
                  <button id="read-article-btn" class="group relative px-8 py-3 rounded-full bg-gradient-to-r from-cyan-300 to-green-300 text-slate-900 font-bold text-sm tracking-wider uppercase shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 overflow-hidden flex items-center gap-2">
@@ -221,6 +232,40 @@
     </div>
 
     <script>
+        // Dark Mode Logic
+        const themeToggleBtn = document.getElementById('theme-toggle');
+        const themeIconSun = document.getElementById('theme-icon-sun');
+        const themeIconMoon = document.getElementById('theme-icon-moon');
+
+        function updateThemeUI(isDark) {
+            if (isDark) {
+                document.documentElement.classList.add('dark');
+                themeIconMoon.classList.remove('hidden');
+                themeIconSun.classList.add('hidden');
+            } else {
+                document.documentElement.classList.remove('dark');
+                themeIconMoon.classList.add('hidden');
+                themeIconSun.classList.remove('hidden');
+            }
+        }
+
+        // Init
+        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            updateThemeUI(true);
+        } else {
+            updateThemeUI(false);
+        }
+
+        themeToggleBtn.addEventListener('click', () => {
+            if (document.documentElement.classList.contains('dark')) {
+                localStorage.theme = 'light';
+                updateThemeUI(false);
+            } else {
+                localStorage.theme = 'dark';
+                updateThemeUI(true);
+            }
+        });
+
         // Data
         const ARTICLES = [
             {{ range $index, $page := where .Site.RegularPages "Section" "posts" }}
@@ -279,7 +324,7 @@
 
                 // Connector Line
                 const line = document.createElement('div');
-                line.className = `h-[1px] bg-slate-200 mr-4 transition-all duration-500 ${isActive ? 'w-12 bg-black' : 'w-6'}`;
+                line.className = `h-[1px] bg-slate-200 dark:bg-slate-700 mr-4 transition-all duration-500 ${isActive ? 'w-12 bg-black dark:bg-white' : 'w-6'}`;
                 
                 // Text Content Container
                 const content = document.createElement('div');
@@ -298,7 +343,7 @@
                 // Title
                 const h3 = document.createElement('h3');
                 // Fix: Text color black when active (instead of gradient background)
-                h3.className = `text-2xl md:text-3xl transition-all duration-300 ${isActive ? 'text-black font-bold scale-100' : 'text-slate-300 group-hover:text-slate-400'}`;
+                h3.className = `text-2xl md:text-3xl transition-all duration-300 ${isActive ? 'text-black dark:text-white font-bold scale-100' : 'text-slate-300 dark:text-slate-600 group-hover:text-slate-400 dark:group-hover:text-slate-500'}`;
                 h3.style.fontWeight = fontWeight;
                 h3.textContent = article.title;
 
