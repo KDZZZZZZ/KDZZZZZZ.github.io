@@ -228,7 +228,7 @@
                 id: {{ $index }},
                 title: {{ $page.Title | jsonify }},
                 date: {{ $page.Date.Format "2006-01-02" | jsonify }},
-                permalink: {{ $page.RelPermalink | jsonify }}
+                permalink: "{{ $page.RelPermalink }}"
             },
             {{ end }}
         ];
