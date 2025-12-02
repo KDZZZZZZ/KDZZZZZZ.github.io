@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=64303&amp;path=livereload" data-no-instant defer></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TVM代码库解析：Relay层结构与优化Pass | FUTURE.BLOG</title>
+    
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <script src="/js/highlighter.js" defer></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    keyframes: {
+                        'gradient-x': {
+                            '0%, 100%': {
+                                'background-size': '200% 200%',
+                                'background-position': 'left center'
+                            },
+                            '50%': {
+                                'background-size': '200% 200%',
+                                'background-position': 'right center'
+                            },
+                        },
+                    },
+                    animation: {
+                        'gradient-x': 'gradient-x 3s ease infinite',
+                    },
+                    typography: {
+                        DEFAULT: {
+                            css: {
+                                maxWidth: 'none',
+                                color: '#334155',
+                                a: {
+                                    color: '#22d3ee',
+                                    '&:hover': {
+                                        color: '#a855f7',
+                                    },
+                                },
+                                h1: {
+                                    display: 'none',
+                                },
+                                h2: {
+                                    color: '#0f172a',
+                                    fontWeight: '700',
+                                    marginTop: '2em',
+                                    marginBottom: '1em',
+                                },
+                                
+                                code: {
+                                    color: '#ffffff',
+                                    backgroundImage: 'linear-gradient(to right, #ec4899, #a855f7, #3b82f6)',
+                                    backgroundSize: '200% auto',
+                                    animation: 'gradient-x 3s ease infinite',
+                                    borderRadius: '0.25rem',
+                                    padding: '0.2em 0.4em',
+                                    fontWeight: '600',
+                                    textDecoration: 'none',
+                                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                                },
+                                'code::before': {
+                                    content: '""',
+                                },
+                                'code::after': {
+                                    content: '""',
+                                },
+                                
+                                pre: {
+                                    backgroundColor: 'rgba(30, 41, 59, 0.9)', 
+                                    backdropFilter: 'blur(12px)',
+                                    border: '1px solid rgba(255, 255, 255, 0.1)', 
+                                    color: '#f8fafc', 
+                                    borderRadius: '1rem',
+                                    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.2)',
+                                    padding: '1.5rem',
+                                },
+                                'pre code': {
+                                    backgroundColor: 'transparent',
+                                    backgroundImage: 'none', 
+                                    animation: 'none',       
+                                    color: 'inherit',
+                                    padding: '0',
+                                    boxShadow: 'none',
+                                    fontWeight: '400',
+                                    fontSize: '0.9em',
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        }
+    </script>
+    <style>
+         
+        .prose pre {
+            background-color: rgba(255, 255, 255, 0.6) !important;  
+            backdrop-filter: blur(12px);
+            color: #1e293b !important;  
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            border-radius: 1rem;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05);
+            padding: 1.5rem;
+        }
+        .prose pre code {
+            background-color: transparent !important;
+            color: inherit !important;
+            font-weight: 400;
+        }
+
+        .gradient-text {
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            background-image: linear-gradient(to right, #22d3ee, #a855f7, #4ade80);  
+        }
+        
+         
+        .katex {
+            background-clip: text !important;
+            -webkit-background-clip: text !important;
+            color: transparent !important;
+            background-image: linear-gradient(to right, #ec4899, #a855f7, #3b82f6) !important;  
+            background-size: 200% auto;
+            animation: gradient-x 3s ease infinite;
+        }
+         
+        .katex * {
+            color: inherit !important;
+            border-color: currentColor !important;
+        }
+        .katex .katex-html {
+            background-clip: text !important;
+            -webkit-background-clip: text !important;
+        }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+         
+        .wavy-line {
+            background-image: url("data:image/svg+xml,%3Csvg width='40' height='1000' viewBox='0 0 40 1000' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 0C20 50 35 50 35 100C35 150 5 150 5 200C5 250 20 250 20 300C20 350 35 350 35 400C35 450 5 450 5 500C5 550 20 550 20 600C20 650 35 650 35 700C35 750 5 750 5 800C5 850 20 850 20 900' stroke='url(%23paint0_linear)' stroke-width='4' stroke-linecap='round'/%3E%3Cdefs%3E%3ClinearGradient id='paint0_linear' x1='20' y1='0' x2='20' y2='1000' gradientUnits='userSpaceOnUse'%3E%3Cstop stop-color='%2322D3EE'/%3E%3Cstop offset='0.5' stop-color='%23E879F9'/%3E%3Cstop offset='1' stop-color='%234ADE80'/%3E%3C/linearGradient%3E%3C/defs%3E%3C/svg%3E");
+            background-repeat: repeat-y;
+            width: 40px;
+            height: 100%;
+        }
+
+         
+        body {
+            cursor: url("data:image/svg+xml,%3Csvg width='32' height='32' viewBox='0 0 32 32' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M5.5 3.5L19 16.5L11.5 17.5L9.5 23.5L5.5 3.5Z' fill='black' stroke='white' stroke-width='2' stroke-linejoin='round'/%3E%3C/svg%3E"), auto;
+        }
+         
+        .background-curves {
+            position: fixed;
+            inset: 0;
+            z-index: -10;
+            pointer-events: none;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 1200 1200' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cfilter id='blur' x='-50%25' y='-50%25' width='200%25' height='200%25'%3E%3CfeGaussianBlur in='SourceGraphic' stdDeviation='50'/%3E%3C/filter%3E%3C/defs%3E%3Cg filter='url(%23blur)' opacity='0.6'%3E%3Cpath d='M-100,200 C200,50 500,500 900,100' stroke='rgba(34,211,238,0.6)' stroke-width='100' fill='none'/%3E%3Cpath d='M-100,500 C300,300 600,800 1300,400' stroke='rgba(232,121,249,0.6)' stroke-width='100' fill='none'/%3E%3Cpath d='M200,-100 C400,400 900,200 1100,600' stroke='rgba(74,222,128,0.6)' stroke-width='100' fill='none'/%3E%3Cpath d='M1300,800 C900,1000 500,600 100,1100' stroke='rgba(167,139,250,0.6)' stroke-width='100' fill='none'/%3E%3C/g%3E%3C/svg%3E");
+            background-size: cover;
+            background-position: center;
+        }
+        
+         
+        .prose :not(pre) > code {
+            position: relative;
+            display: inline-block;
+            padding: 2px 6px;
+            margin: 0 2px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 0.9em;
+            border-radius: 4px;
+            color: #334155;
+            background: transparent;
+            overflow: hidden;
+            vertical-align: baseline;
+        }
+        
+        .prose :not(pre) > code::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(120deg, 
+                rgba(34, 211, 238, 0.2), 
+                rgba(167, 139, 250, 0.2), 
+                rgba(232, 121, 249, 0.2),
+                rgba(34, 211, 238, 0.2)
+            );
+            background-size: 300% 300%;
+            animation: sea-flow 6s ease infinite;
+            z-index: -1;
+        }
+        
+        .prose :not(pre) > code::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #22d3ee, #e879f9, #4ade80, #22d3ee);
+            background-size: 200% 100%;
+            animation: sea-wave-border 3s linear infinite;
+            opacity: 0.8;
+        }
+
+        @keyframes sea-flow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        @keyframes sea-wave-border {
+            0% { background-position: 0% 0%; }
+            100% { background-position: 200% 0%; }
+        }
+        .grain-overlay { position: fixed; inset:0; z-index:-11; pointer-events:none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='128' height='128'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E"); opacity:.6; mix-blend-mode:soft-light; }
+    </style>
+</head>
+<body class="bg-[#FDFDFD] font-sans min-h-screen flex flex-col">
+    <div class="background-curves"></div>
+    <div class="grain-overlay"></div>
+
+    
+    <header class="w-full p-8 flex justify-between items-center z-50">
+        <div class="flex items-center gap-2 group cursor-pointer" onclick="window.location.href='/'">
+            <div class="w-3 h-3 rounded-full bg-black animate-pulse group-hover:bg-gradient-to-r group-hover:from-cyan-400 group-hover:to-purple-400"></div>
+            <span class="font-bold text-xl tracking-tight text-slate-800 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-cyan-400 group-hover:via-purple-400 group-hover:to-green-400 transition-all duration-300">FUTURE.BLOG</span>
+        </div>
+        <nav class="hidden md:flex gap-8 text-sm font-medium text-slate-400">
+            <a href="/" class="hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-cyan-400 hover:to-purple-400 transition-colors">Home</a>
+            <a href="/about" class="hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-purple-400 hover:to-pink-400 transition-colors">About</a>
+            <a href="/posts" class="hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-green-400 hover:to-cyan-400 transition-colors">Blogs</a>
+            <a href="/contact" class="hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-pink-400 hover:to-orange-400 transition-colors">Contact</a>
+        </nav>
+    </header>
+
+    <main class="flex-grow container mx-auto px-6 py-12 max-w-7xl relative">
+        
+        
+        <div class="absolute top-0 left-1/4 w-96 h-96 bg-cyan-300/20 rounded-full blur-3xl -z-10 mix-blend-multiply animate-blob"></div>
+        <div class="absolute top-0 right-1/4 w-96 h-96 bg-purple-300/20 rounded-full blur-3xl -z-10 mix-blend-multiply animate-blob animation-delay-2000"></div>
+        <div class="absolute bottom-0 left-1/3 w-96 h-96 bg-pink-300/20 rounded-full blur-3xl -z-10 mix-blend-multiply animate-blob animation-delay-4000"></div>
+
+        
+        <div class="mb-16 relative">
+            
+            <div class="absolute -bottom-8 left-0 w-full h-[1px] bg-gradient-to-r from-cyan-200 via-purple-200 to-transparent"></div>
+            
+            <h1 class="text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter leading-[0.9] uppercase">
+                <span class="block text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-purple-400 to-green-400 drop-shadow-sm">TVM代码库解析：Relay层结构与优化Pass</span>
+            </h1>
+        </div>
+
+        
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 relative">
+            
+            
+            <div class="lg:col-span-12 max-w-4xl mx-auto">
+                <article class="prose prose-lg max-w-none">
+                    
+                    <p>relay层主要由数据结构类(如Constant)和节点类(如ConstantNode)组成。
+下面梳理一下他们的继承链。</p>
+<p>ObjectRef → BaseExpr → RelayExpr → Constant</p>
+<p>Object → BaseExprNode → RelayExprNode → ConstantNode</p>
+<blockquote>
+<p>源代码库中使用了<code>using ExprNode = tvm::RelayExprNode;</code></p>
+</blockquote>
+<p>这里先赘述一下上面每个类的的功能：</p>
+<h4 id="1-object-includetvmruntimeobjecth"><strong>(1) <code>Object</code> (include/tvm/runtime/object.h)</strong></h4>
+<ul>
+<li><strong>功能</strong>：
+<ul>
+<li>TVM <strong>所有对象的基类</strong>，提供 <strong>引用计数</strong> 和 <strong>类型系统</strong> 支持</li>
+<li>实现 <code>RefCount</code> 机制（通过 <code>use_count</code> 成员）</li>
+<li>提供 <code>type_index</code> 用于运行时类型识别（RTTI）</li>
+</ul>
+</li>
+<li><strong>关键方法</strong>：
+<div class="highlight"><pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#007020;font-weight:bold">virtual</span> <span style="color:#902000">uint32_t</span> <span style="color:#06287e">type_index</span>() <span style="color:#007020;font-weight:bold">const</span>; <span style="color:#60a0b0;font-style:italic">// 类型标识
+</span></span></span><span style="display:flex;"><span><span style="color:#60a0b0;font-style:italic"></span><span style="color:#902000">void</span> <span style="color:#06287e">IncRef</span>();  <span style="color:#60a0b0;font-style:italic">// 增加引用计数
+</span></span></span><span style="display:flex;"><span><span style="color:#60a0b0;font-style:italic"></span><span style="color:#902000">void</span> <span style="color:#06287e">DecRef</span>();  <span style="color:#60a0b0;font-style:italic">// 减少引用计数
+</span></span></span></code></pre></div></li>
+</ul>
+<h4 id="2-objectref-includetvmruntimeobjecth"><strong>(2) <code>ObjectRef</code> (include/tvm/runtime/object.h)</strong></h4>
+<ul>
+<li><strong>功能</strong>：
+<ul>
+<li>所有 <strong>对象引用</strong> 的基类模板（如 <code>Constant</code> 本质是 <code>ObjectRef&lt;ConstantNode&gt;</code>）</li>
+<li>通过智能指针 (<code>ObjectPtr</code>) <strong>管理 Object 子类的生命周期</strong></li>
+<li>提供 <strong>类型安全转换接口</strong>（如 <code>as&lt;T&gt;()</code>）</li>
+</ul>
+</li>
+<li><strong>关键行为</strong>：
+<div class="highlight"><pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#007020;font-weight:bold">template</span><span style="color:#666">&lt;</span><span style="color:#007020;font-weight:bold">typename</span> T<span style="color:#666">&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#007020;font-weight:bold">const</span> T<span style="color:#666">*</span> as() <span style="color:#007020;font-weight:bold">const</span>; <span style="color:#60a0b0;font-style:italic">// 安全类型转换
+</span></span></span><span style="display:flex;"><span><span style="color:#60a0b0;font-style:italic"></span><span style="color:#007020;font-weight:bold">operator</span> <span style="color:#06287e">bool</span>() <span style="color:#007020;font-weight:bold">const</span>; <span style="color:#60a0b0;font-style:italic">// 检查是否非空
+</span></span></span></code></pre></div></li>
+</ul>
+<h4 id="3-baseexprnode-includetvmirexprh"><strong>(3) <code>BaseExprNode</code> (include/tvm/ir/expr.h)</strong></h4>
+<ul>
+<li><strong>继承关系</strong>：<code>Object</code> → <code>BaseExprNode</code></li>
+<li><strong>功能</strong>：
+<ul>
+<li>所有 <strong>表达式节点</strong> 的抽象基类</li>
+<li>定义表达式通用接口：
+<ul>
+<li>数据类型 (<code>dtype</code>)</li>
+<li>源码位置 (<code>span</code>)</li>
+<li>虚函数 <code>SEqualReduce</code>（用于结构相等性比较）</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><strong>关键成员</strong>：
+<div class="highlight"><pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>runtime<span style="color:#666">::</span>DataType dtype; <span style="color:#60a0b0;font-style:italic">// 数据类型（如 float32）
+</span></span></span><span style="display:flex;"><span><span style="color:#60a0b0;font-style:italic"></span>Span span;               <span style="color:#60a0b0;font-style:italic">// 源码位置信息（用于调试）
+</span></span></span></code></pre></div></li>
+</ul>
+<h4 id="4-baseexpr-includetvmirexprh"><strong>(4) <code>BaseExpr</code> (include/tvm/ir/expr.h)</strong></h4>
+<ul>
+<li><strong>继承关系</strong>：<code>ObjectRef</code> → <code>BaseExpr</code></li>
+<li><strong>功能</strong>：
+<ul>
+<li>所有 <strong>表达式引用</strong> 的基类（如 <code>Constant</code>、<code>Var</code> 等）</li>
+<li>提供对 <code>BaseExprNode</code> 的通用访问接口</li>
+<li>重载运算符（如 <code>operator==</code>）实现表达式比较</li>
+</ul>
+</li>
+</ul>
+<h4 id="5-relayexprnode-includetvmirexprh"><strong>(5) <code>RelayExprNode</code> (include/tvm/ir/expr.h)</strong></h4>
+<ul>
+<li><strong>继承关系</strong>：<code>BaseExprNode</code> → <code>RelayExprNode</code></li>
+<li><strong>功能</strong>：
+<ul>
+<li><strong>Relay 表达式体系的节点基类</strong>，定义所有高层计算图节点的通用行为</li>
+<li>存储 Relay 特有的元数据：
+<ul>
+<li><strong>类型信息</strong> (<code>checked_type_</code>): 类型推断后的结果（如 <code>TensorType(shape=[1,3], dtype=float32)</code>）</li>
+<li><strong>源码位置</strong> (<code>span</code>): 用于调试和错误定位</li>
+</ul>
+</li>
+<li>实现 <strong>结构等价性检查</strong> (<code>SEqualReduce</code>) 和 <strong>哈希生成</strong> (<code>SHashReduce</code>) 的虚函数</li>
+<li>支持 <strong>递归遍历子节点</strong> 的接口（用于优化 Pass 或分析）</li>
+</ul>
+</li>
+<li><strong>关键成员</strong>：
+<div class="highlight"><pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#007020;font-weight:bold">mutable</span> Type checked_type_;  <span style="color:#60a0b0;font-style:italic">// 类型推断结果（可缓存）
+</span></span></span><span style="display:flex;"><span><span style="color:#60a0b0;font-style:italic"></span>Span span;                   <span style="color:#60a0b0;font-style:italic">// 源码位置信息
+</span></span></span></code></pre></div></li>
+<li><strong>典型子类</strong>：
+<ul>
+<li><code>ConstantNode</code>（常量）</li>
+<li><code>VarNode</code>（变量）</li>
+<li><code>CallNode</code>（函数调用）</li>
+<li><code>FunctionNode</code>（函数定义）</li>
+</ul>
+</li>
+</ul>
+<h4 id="6-relayexpr-includetvmirexprh"><strong>(6) <code>RelayExpr</code> (include/tvm/ir/expr.h)</strong></h4>
+<ul>
+<li><strong>继承关系</strong>：<code>BaseExpr</code> → <code>RelayExpr</code></li>
+<li><strong>功能</strong>：
+<ul>
+<li>通过<code>TVM_DEFINE_OBJECT_REF_METHODS</code>宏定义了对象引用管理、类型转换和节点访问的功能</li>
+</ul>
+</li>
+</ul>
+<h4 id="7-constantnode-includetvmrelayexprh"><strong>(7) <code>ConstantNode</code> (include/tvm/relay/expr.h)</strong></h4>
+<ul>
+<li><strong>继承关系</strong>：<code>RelayExprNode</code> → <code>ConstantNode</code></li>
+<li><strong>功能</strong>：
+<ul>
+<li><strong>存储常量数据的节点</strong>（具体实现）</li>
+<li>持有 <code>runtime::NDArray</code> 表示常量值</li>
+<li>实现 <code>SEqualReduce</code> 比较常量值是否相等</li>
+<li>实现 <code>SHashReduce</code> 生成哈希值</li>
+</ul>
+</li>
+<li><strong>关键成员</strong>：
+<div class="highlight"><pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>runtime<span style="color:#666">::</span>NDArray data; <span style="color:#60a0b0;font-style:italic">// 常量数据（可以是标量或张量）
+</span></span></span></code></pre></div></li>
+</ul>
+<h4 id="8-constant-includetvmrelayexprh"><strong>(8) <code>Constant</code> (include/tvm/relay/expr.h)</strong></h4>
+<ul>
+<li><strong>继承关系</strong>：<code>RelayExpr</code> → <code>Constant</code></li>
+<li><strong>功能</strong>：
+<ul>
+<li><strong>用户直接使用的常量包装类</strong></li>
+<li>构造函数封装 <code>ConstantNode</code> 的创建</li>
+<li>提供对 <code>data</code> 的安全访问方法</li>
+<li>示例用法：
+<div class="highlight"><pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>NDArray arr <span style="color:#666">=</span> ...;
+</span></span><span style="display:flex;"><span>Constant c <span style="color:#666">=</span> Constant(arr);  <span style="color:#60a0b0;font-style:italic">// 创建常量
+</span></span></span><span style="display:flex;"><span><span style="color:#60a0b0;font-style:italic"></span>Expr expr <span style="color:#666">=</span> c;               <span style="color:#60a0b0;font-style:italic">// 可隐式转换为基类
+</span></span></span></code></pre></div></li>
+</ul>
+</li>
+</ul>
+<p>有了对基类的功能认识，我们只需要继续了解类似<code>Constant</code>和<code>ConstantNode</code>类的其他主要类实现。</p>
+<h3 id="2-数据节点常量与变量"><strong>2. 数据节点：常量与变量</strong></h3>
+<h4 id="1-constantnode"><strong>(1) <code>ConstantNode</code></strong></h4>
+<ul>
+<li><strong>继承关系</strong>: <code>RelayExprNode</code> → <code>ConstantNode</code></li>
+<li><strong>功能</strong>: 存储计算图中的常量数据（如模型权重）</li>
+<li><strong>成员变量</strong>:
+<div class="highlight"><pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>runtime<span style="color:#666">::</span>NDArray data; <span style="color:#60a0b0;font-style:italic">// 数据载体（支持标量、向量、张量）
+</span></span></span></code></pre></div></li>
+<li><strong>方法</strong>:
+<ul>
+<li><code>SEqualReduce</code>: 比较两个 NDArray 是否逐元素相等</li>
+<li><code>SHashReduce</code>: 基于 NDArray 数据生成哈希</li>
+</ul>
+</li>
+<li><strong>包装类</strong>: <code>Constant</code>
+<div class="highlight"><pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#007020;font-weight:bold">class</span> <span style="color:#0e84b5;font-weight:bold">Constant</span> <span style="color:#666">:</span> <span style="color:#007020;font-weight:bold">public</span> RelayExpr {
+</span></span><span style="display:flex;"><span> <span style="color:#007020;font-weight:bold">public</span><span style="color:#666">:</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#007020;font-weight:bold">explicit</span> Constant(runtime<span style="color:#666">::</span>NDArray data);
+</span></span><span style="display:flex;"><span>  <span style="color:#007020;font-weight:bold">const</span> ConstantNode<span style="color:#666">*</span> <span style="color:#007020;font-weight:bold">operator</span><span style="color:#666">-&gt;</span>() <span style="color:#007020;font-weight:bold">const</span>;
+</span></span><span style="display:flex;"><span>};
+</span></span></code></pre></div></li>
+</ul>
+<h4 id="2-varnode"><strong>(2) <code>VarNode</code></strong></h4>
+<ul>
+<li><strong>继承关系</strong>: <code>RelayExprNode</code> → <code>VarNode</code></li>
+<li><strong>功能</strong>: 表示计算图中的变量（输入/中间变量）</li>
+<li><strong>成员变量</strong>:
+<div class="highlight"><pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>Id vid;                  <span style="color:#60a0b0;font-style:italic">// 变量唯一标识符（如 %x）
+</span></span></span><span style="display:flex;"><span><span style="color:#60a0b0;font-style:italic"></span>Type type_annotation;    <span style="color:#60a0b0;font-style:italic">// 显式类型注解（可选）
+</span></span></span></code></pre></div></li>
+<li><strong>包装类</strong>: <code>Var</code>
+<div class="highlight"><pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#007020;font-weight:bold">class</span> <span style="color:#0e84b5;font-weight:bold">Var</span> <span style="color:#666">:</span> <span style="color:#007020;font-weight:bold">public</span> RelayExpr {
+</span></span><span style="display:flex;"><span> <span style="color:#007020;font-weight:bold">public</span><span style="color:#666">:</span>
+</span></span><span style="display:flex;"><span>  Var(Id vid, Type type_annotation <span style="color:#666">=</span> Type(<span style="color:#007020;font-weight:bold">nullptr</span>));
+</span></span><span style="display:flex;"><span>  <span style="color:#007020;font-weight:bold">static</span> Var <span style="color:#06287e">Create</span>(Id vid, Type type_annotation); <span style="color:#60a0b0;font-style:italic">// 工厂方法
+</span></span></span><span style="display:flex;"><span><span style="color:#60a0b0;font-style:italic"></span>};
+</span></span></code></pre></div></li>
+</ul>
+<hr>
+<h3 id="3-计算节点算子与流程控制"><strong>3. 计算节点：算子与流程控制</strong></h3>
+<h4 id="1-callnode"><strong>(1) <code>CallNode</code></strong></h4>
+<ul>
+<li><strong>继承关系</strong>: <code>RelayExprNode</code> → <code>CallNode</code></li>
+<li><strong>功能</strong>: 表示函数或算子的调用</li>
+<li><strong>成员变量</strong>:
+<div class="highlight"><pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>RelayExpr op;             <span style="color:#60a0b0;font-style:italic">// 被调用的函数/算子（可以是Var或Function）
+</span></span></span><span style="display:flex;"><span><span style="color:#60a0b0;font-style:italic"></span>Array<span style="color:#666">&lt;</span>RelayExpr<span style="color:#666">&gt;</span> args;    <span style="color:#60a0b0;font-style:italic">// 调用参数列表
+</span></span></span><span style="display:flex;"><span><span style="color:#60a0b0;font-style:italic"></span>Attrs attrs;              <span style="color:#60a0b0;font-style:italic">// 算子属性（如卷积的stride、padding）
+</span></span></span></code></pre></div></li>
+<li><strong>包装类</strong>: <code>Call</code>
+<div class="highlight"><pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#007020;font-weight:bold">class</span> <span style="color:#0e84b5;font-weight:bold">Call</span> <span style="color:#666">:</span> <span style="color:#007020;font-weight:bold">public</span> RelayExpr {
+</span></span><span style="display:flex;"><span> <span style="color:#007020;font-weight:bold">public</span><span style="color:#666">:</span>
+</span></span><span style="display:flex;"><span>  Call(RelayExpr op, Array<span style="color:#666">&lt;</span>RelayExpr<span style="color:#666">&gt;</span> args, Attrs attrs <span style="color:#666">=</span> Attrs());
+</span></span><span style="display:flex;"><span>};
+</span></span></code></pre></div></li>
+</ul>
+<h4 id="2-functionnode"><strong>(2) <code>FunctionNode</code></strong></h4>
+<ul>
+<li><strong>继承关系</strong>: <code>RelayExprNode</code> → <code>FunctionNode</code></li>
+<li><strong>功能</strong>: 定义 Relay 函数（类似 Lambda 表达式）</li>
+<li><strong>成员变量</strong>:
+<div class="highlight"><pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>Array<span style="color:#666">&lt;</span>Var<span style="color:#666">&gt;</span> params;      <span style="color:#60a0b0;font-style:italic">// 函数参数列表
+</span></span></span><span style="display:flex;"><span><span style="color:#60a0b0;font-style:italic"></span>RelayExpr body;         <span style="color:#60a0b0;font-style:italic">// 函数体表达式
+</span></span></span><span style="display:flex;"><span><span style="color:#60a0b0;font-style:italic"></span>Type ret_type;          <span style="color:#60a0b0;font-style:italic">// 显式声明的返回类型
+</span></span></span></code></pre></div></li>
+<li><strong>包装类</strong>: <code>Function</code>
+<div class="highlight"><pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#007020;font-weight:bold">class</span> <span style="color:#0e84b5;font-weight:bold">Function</span> <span style="color:#666">:</span> <span style="color:#007020;font-weight:bold">public</span> RelayExpr {
+</span></span><span style="display:flex;"><span> <span style="color:#007020;font-weight:bold">public</span><span style="color:#666">:</span>
+</span></span><span style="display:flex;"><span>  Function(Array<span style="color:#666">&lt;</span>Var<span style="color:#666">&gt;</span> params, RelayExpr body, Type ret_type);
+</span></span><span style="display:flex;"><span>};
+</span></span></code></pre></div></li>
+</ul>
+<h4 id="3-ifnode"><strong>(3) <code>IfNode</code></strong></h4>
+<ul>
+<li><strong>继承关系</strong>: <code>RelayExprNode</code> → <code>IfNode</code></li>
+<li><strong>功能</strong>: 条件分支控制流</li>
+<li><strong>成员变量</strong>:
+<div class="highlight"><pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>RelayExpr cond;         <span style="color:#60a0b0;font-style:italic">// 条件表达式（需为布尔标量）
+</span></span></span><span style="display:flex;"><span><span style="color:#60a0b0;font-style:italic"></span>RelayExpr true_branch;  <span style="color:#60a0b0;font-style:italic">// 条件为真时执行的表达式
+</span></span></span><span style="display:flex;"><span><span style="color:#60a0b0;font-style:italic"></span>RelayExpr false_branch; <span style="color:#60a0b0;font-style:italic">// 条件为假时执行的表达式
+</span></span></span></code></pre></div></li>
+<li><strong>包装类</strong>: <code>If</code>
+<div class="highlight"><pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#007020;font-weight:bold">class</span> <span style="color:#0e84b5;font-weight:bold">If</span> <span style="color:#666">:</span> <span style="color:#007020;font-weight:bold">public</span> RelayExpr {
+</span></span><span style="display:flex;"><span> <span style="color:#007020;font-weight:bold">public</span><span style="color:#666">:</span>
+</span></span><span style="display:flex;"><span>  If(RelayExpr cond, RelayExpr true_branch, RelayExpr false_branch);
+</span></span><span style="display:flex;"><span>};
+</span></span></code></pre></div></li>
+</ul>
+<hr>
+<h3 id="4-复合结构节点"><strong>4. 复合结构节点</strong></h3>
+<h4 id="1-tuplenode"><strong>(1) <code>TupleNode</code></strong></h4>
+<ul>
+<li><strong>继承关系</strong>: <code>RelayExprNode</code> → <code>TupleNode</code></li>
+<li><strong>功能</strong>: 存储多个表达式的元组</li>
+<li><strong>成员变量</strong>:
+<div class="highlight"><pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>Array<span style="color:#666">&lt;</span>RelayExpr<span style="color:#666">&gt;</span> fields; <span style="color:#60a0b0;font-style:italic">// 元组中的元素列表
+</span></span></span></code></pre></div></li>
+<li><strong>包装类</strong>: <code>Tuple</code>
+<div class="highlight"><pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#007020;font-weight:bold">class</span> <span style="color:#0e84b5;font-weight:bold">Tuple</span> <span style="color:#666">:</span> <span style="color:#007020;font-weight:bold">public</span> RelayExpr {
+</span></span><span style="display:flex;"><span> <span style="color:#007020;font-weight:bold">public</span><span style="color:#666">:</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#007020;font-weight:bold">explicit</span> Tuple(Array<span style="color:#666">&lt;</span>RelayExpr<span style="color:#666">&gt;</span> fields);
+</span></span><span style="display:flex;"><span>};
+</span></span></code></pre></div></li>
+</ul>
+<h4 id="2-tuplegetitemnode"><strong>(2) <code>TupleGetItemNode</code></strong></h4>
+<ul>
+<li><strong>继承关系</strong>: <code>RelayExprNode</code> → <code>TupleGetItemNode</code></li>
+<li><strong>功能</strong>: 从元组中按索引取值</li>
+<li><strong>成员变量</strong>:
+<div class="highlight"><pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>RelayExpr tuple;        <span style="color:#60a0b0;font-style:italic">// 目标元组
+</span></span></span><span style="display:flex;"><span><span style="color:#60a0b0;font-style:italic"></span><span style="color:#902000">int</span> index;              <span style="color:#60a0b0;font-style:italic">// 索引值（从0开始）
+</span></span></span></code></pre></div></li>
+<li><strong>包装类</strong>: <code>TupleGetItem</code>
+<div class="highlight"><pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#007020;font-weight:bold">class</span> <span style="color:#0e84b5;font-weight:bold">TupleGetItem</span> <span style="color:#666">:</span> <span style="color:#007020;font-weight:bold">public</span> RelayExpr {
+</span></span><span style="display:flex;"><span> <span style="color:#007020;font-weight:bold">public</span><span style="color:#666">:</span>
+</span></span><span style="display:flex;"><span>  TupleGetItem(RelayExpr tuple, <span style="color:#902000">int</span> index);
+</span></span><span style="display:flex;"><span>};
+</span></span></code></pre></div></li>
+</ul>
+<h4 id="3-letnode"><strong>(3) <code>LetNode</code></strong></h4>
+<ul>
+<li><strong>继承关系</strong>: <code>RelayExprNode</code> → <code>LetNode</code></li>
+<li><strong>功能</strong>: 绑定局部变量（类似 let-in 表达式）</li>
+<li><strong>成员变量</strong>:
+<div class="highlight"><pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>Var var;                <span style="color:#60a0b0;font-style:italic">// 绑定的变量
+</span></span></span><span style="display:flex;"><span><span style="color:#60a0b0;font-style:italic"></span>RelayExpr value;        <span style="color:#60a0b0;font-style:italic">// 变量的值
+</span></span></span><span style="display:flex;"><span><span style="color:#60a0b0;font-style:italic"></span>RelayExpr body;         <span style="color:#60a0b0;font-style:italic">// 变量作用域内的表达式
+</span></span></span></code></pre></div></li>
+<li><strong>包装类</strong>: <code>Let</code>
+<div class="highlight"><pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#007020;font-weight:bold">class</span> <span style="color:#0e84b5;font-weight:bold">Let</span> <span style="color:#666">:</span> <span style="color:#007020;font-weight:bold">public</span> RelayExpr {
+</span></span><span style="display:flex;"><span> <span style="color:#007020;font-weight:bold">public</span><span style="color:#666">:</span>
+</span></span><span style="display:flex;"><span>  Let(Var var, RelayExpr value, RelayExpr body);
+</span></span><span style="display:flex;"><span>};
+</span></span></code></pre></div></li>
+</ul>
+<hr>
+<h4 id="节点连接方式">节点连接方式</h4>
+<div class="highlight"><pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#007020;font-weight:bold">class</span> <span style="color:#0e84b5;font-weight:bold">CallNode</span> <span style="color:#666">:</span> <span style="color:#007020;font-weight:bold">public</span> RelayExprNode {
+</span></span><span style="display:flex;"><span> <span style="color:#007020;font-weight:bold">public</span><span style="color:#666">:</span>
+</span></span><span style="display:flex;"><span>  RelayExpr op;          <span style="color:#60a0b0;font-style:italic">// 被调用的算子（ObjectRef&lt;RelayExprNode&gt;）
+</span></span></span><span style="display:flex;"><span><span style="color:#60a0b0;font-style:italic"></span>  Array<span style="color:#666">&lt;</span>RelayExpr<span style="color:#666">&gt;</span> args; <span style="color:#60a0b0;font-style:italic">// 参数列表（ObjectRef 的容器）
+</span></span></span><span style="display:flex;"><span><span style="color:#60a0b0;font-style:italic"></span>};
+</span></span></code></pre></div><p>这里的<code>Array</code>用来储存上面的一切包装类(如Constant，用来引用节点)。
+<code>Array</code>的结构是<code>vector&lt;ObjectRef&gt;</code>.</p>
+<h4 id="ast示例">AST示例</h4>
+<div class="highlight"><pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>// 构建表达式：add(mul(x, 2), y)
+</span></span><span style="display:flex;"><span>relay::Var x = relay::Var(&#34;x&#34;, TensorType({1}, DataType::Float(32)));
+</span></span><span style="display:flex;"><span>relay::Var y = relay::Var(&#34;y&#34;, TensorType({1}, DataType::Float(32)));
+</span></span><span style="display:flex;"><span>relay::Constant two = relay::Constant(runtime::NDArray::Scalar(2.0f));
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>// 节点连接关系：
+</span></span><span style="display:flex;"><span>// add_op -&gt; CallNode
+</span></span><span style="display:flex;"><span>//   ├── op    : FunctionRef (指向加法算子)
+</span></span><span style="display:flex;"><span>//   │   ├── op    : FunctionRef (指向乘法算子)
+</span></span><span style="display:flex;"><span>//   │   ├── args[0]: VarNode (x)
+</span></span><span style="display:flex;"><span>//   │   └── args[1]: ConstantNode (2)
+</span></span><span style="display:flex;"><span>//   └── args[1]: VarNode (y)
+</span></span><span style="display:flex;"><span>relay::Call mul = relay::Call(mul_op, {x, two});
+</span></span><span style="display:flex;"><span>relay::Call add = relay::Call(add_op, {mul, y});
+</span></span></code></pre></div><h4 id="pass">Pass</h4>
+<p>Pass的结构和继承关系也分为节点类和引用类两支。</p>
+<p>使用<code>PassRegistry</code>全局注册表来管理 Pass。下面依次叙述一下各个类的功能。</p>
+<p><code>Pass</code>继承自<code>ObjectRef</code>是所有引用类的基类</p>
+<p><code>PassNode</code>继承自<code>Object</code>是所有节点类的基类</p>
+<p><code>PassContext</code>储存了上下文信息，如优化级别、依赖的Pass、配置等。</p>
+<p><code>PassInfo</code>储存了Pass的名称、描述、依赖关系等信息。</p>
+<p><code>Sequential</code>引用类</p>
+<p><code>SequentialNode</code>储存<code>PassInfo</code>和<code>Array&lt;Pass&gt;</code>，实现了遍历、执行、解析依赖的功能。
+在<code>include/tvm/ir/transform.h</code>中定义。</p>
+<p><code>CreateFunctionPass</code>定义了函数级优化Pass
+<code>CreateModulePass</code>定义了模块级优化Pass</p>
+
+                </article>
+
+                
+                <div class="mt-12 flex gap-4">
+                    <button class="group relative px-8 py-3 rounded-full bg-gradient-to-r from-cyan-300 to-green-300 text-slate-900 font-bold text-sm tracking-wider uppercase shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 overflow-hidden" onclick="window.location.href='/posts'">
+                        <span class="relative z-10 flex items-center gap-2">
+                            Back to Blogs 
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="transition-transform group-hover:-translate-x-1 rotate-180"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                        </span>
+                        <div class="absolute inset-0 bg-white/20 group-hover:bg-white/40 transition-colors"></div>
+                    </button>
+                </div>
+            </div>
+
+            
+        </div>
+
+    </main>
+
+    
+    <footer class="w-full py-6 text-center text-slate-400 text-xs uppercase tracking-widest">
+        &copy; 2024 Future.Blog - All Rights Reserved
+    </footer>
+
+</body>
+</html>

@@ -40,13 +40,13 @@ body::before {
 
 /* 文章内容页面的样式 */
 .post-single {
-    background: rgba(0, 0, 0, 0.7) !important;
+    background: rgba(255, 255, 255, 0.7) !important;
     backdrop-filter: blur(15px) !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border: 1px solid rgba(0, 0, 0, 0.05) !important;
     border-radius: 12px !important;
     padding: 40px !important;
     margin: 20px auto !important;
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37) !important;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.05) !important;
     width: 100% !important;
 }
 
@@ -61,7 +61,7 @@ body::before {
 .post-content h4 {
     margin-top: 2em !important;
     margin-bottom: 1em !important;
-    color: #fff !important;
+    color: #1e293b !important; /* Changed from white to slate-800 */
 }
 
 .post-content p {
@@ -69,13 +69,13 @@ body::before {
 }
 
 .post-content code {
-    background: rgba(255, 255, 255, 0.1) !important;
+    background: rgba(0, 0, 0, 0.05) !important; /* Changed from white alpha to black alpha */
     padding: 2px 5px !important;
     border-radius: 3px !important;
 }
 
 .post-content pre {
-    background: rgba(0, 0, 0, 0.5) !important;
+    background: rgba(30, 41, 59, 0.9) !important; /* Ensure code blocks have dark bg for light text */
     padding: 20px !important;
     border-radius: 8px !important;
     overflow-x: auto !important;
@@ -83,9 +83,9 @@ body::before {
 }
 
 .nav {
-    background: rgba(0, 0, 0, 0.6) !important;
+    background: rgba(255, 255, 255, 0.6) !important; /* Light mode nav */
     backdrop-filter: blur(10px) !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1) !important;
     margin-bottom: 30px !important;
     max-width: var(--nav-width) !important;
     width: 100% !important;
@@ -97,22 +97,22 @@ body::before {
 }
 
 .profile img {
-    border: 3px solid rgba(255, 255, 255, 0.2) !important;
+    border: 3px solid rgba(0, 0, 0, 0.1) !important;
     transition: transform 0.3s ease !important;
-    box-shadow: 0 0 20px rgba(0,0,0,0.2) !important;
+    box-shadow: 0 0 20px rgba(0,0,0,0.1) !important;
     max-width: 170px !important;
     border-radius: 50% !important;
 }
 
 .profile img:hover {
     transform: scale(1.05) !important;
-    border-color: rgba(255, 255, 255, 0.4) !important;
+    border-color: rgba(34, 211, 238, 0.4) !important;
 }
 
 .post-entry {
-    background: rgba(0, 0, 0, 0.6) !important;
+    background: rgba(255, 255, 255, 0.6) !important;
     backdrop-filter: blur(8px) !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border: 1px solid rgba(0, 0, 0, 0.1) !important;
     transition: all 0.3s ease !important;
     border-radius: 12px !important;
     padding: 20px !important;
@@ -121,21 +121,21 @@ body::before {
 
 .post-entry:hover {
     transform: translateY(-5px) !important;
-    background: rgba(0, 0, 0, 0.7) !important;
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37) !important;
+    background: rgba(255, 255, 255, 0.8) !important;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1) !important;
 }
 
 .dark {
-    color: #fff !important;
+    color: #1e293b !important;
 }
 
 a {
-    color: #fff !important;
+    color: #334155 !important;
     text-decoration: none !important;
 }
 
 a:hover {
-    color: rgba(255, 255, 255, 0.8) !important;
+    color: #22d3ee !important;
 }
 
 .button {

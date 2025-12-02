@@ -8,9 +8,18 @@ theme = 'PaperMod'
 [outputs]
 home = ["HTML", "RSS", "JSON"]
 
+[markup]
+  [markup.highlight]
+    codeFences = true
+    guessSyntax = true
+    lineNos = false
+    noClasses = true  # Use inline styles for syntax highlighting
+    style = "friendly" # Use a light theme (friendly, tango, trac, colorful)
+    tabWidth = 4
+
 [params]
   author = "Oops"
-  defaultTheme = "dark"  # Default dark theme
+  defaultTheme = "light"  # Changed to light to match new design
   ShowReadingTime = true
   ShowShareButtons = false
   ShowPostNavLinks = true

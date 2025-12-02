@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
-<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>About Me | FUTURE.BLOG</title>
-    
+    <title>{{ .Title }} | FUTURE.BLOG</title>
+    <!-- Include Tailwind with Typography Plugin -->
     <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
     <script src="/js/highlighter.js" defer></script>
     <script>
@@ -46,7 +46,7 @@
                                     marginTop: '2em',
                                     marginBottom: '1em',
                                 },
-                                
+                                // Inline code styling (Gradient Animation)
                                 code: {
                                     color: '#ffffff',
                                     backgroundImage: 'linear-gradient(to right, #ec4899, #a855f7, #3b82f6)',
@@ -64,20 +64,20 @@
                                 'code::after': {
                                     content: '""',
                                 },
-                                
+                                // Code block styling
                                 pre: {
-                                    backgroundColor: 'rgba(30, 41, 59, 0.9)', 
+                                    backgroundColor: 'rgba(30, 41, 59, 0.9)', // Dark background (Slate-800)
                                     backdropFilter: 'blur(12px)',
                                     border: '1px solid rgba(255, 255, 255, 0.1)', 
-                                    color: '#f8fafc', 
+                                    color: '#f8fafc', // Light text
                                     borderRadius: '1rem',
                                     boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.2)',
                                     padding: '1.5rem',
                                 },
                                 'pre code': {
                                     backgroundColor: 'transparent',
-                                    backgroundImage: 'none', 
-                                    animation: 'none',       
+                                    backgroundImage: 'none', // Reset gradient
+                                    animation: 'none',       // Reset animation
                                     color: 'inherit',
                                     padding: '0',
                                     boxShadow: 'none',
@@ -92,11 +92,11 @@
         }
     </script>
     <style>
-         
+        /* Custom styles for specific effects */
         .prose pre {
-            background-color: rgba(255, 255, 255, 0.6) !important;  
+            background-color: rgba(255, 255, 255, 0.6) !important; /* Light glassy background */
             backdrop-filter: blur(12px);
-            color: #1e293b !important;  
+            color: #1e293b !important; /* Dark text (Slate 800) */
             border: 1px solid rgba(0, 0, 0, 0.1);
             border-radius: 1rem;
             box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05);
@@ -112,19 +112,19 @@
             background-clip: text;
             -webkit-background-clip: text;
             color: transparent;
-            background-image: linear-gradient(to right, #22d3ee, #a855f7, #4ade80);  
+            background-image: linear-gradient(to right, #22d3ee, #a855f7, #4ade80); /* cyan-400 via purple-400 to green-400 */
         }
         
-         
+        /* Math Formula Gradient */
         .katex {
             background-clip: text !important;
             -webkit-background-clip: text !important;
             color: transparent !important;
-            background-image: linear-gradient(to right, #ec4899, #a855f7, #3b82f6) !important;  
+            background-image: linear-gradient(to right, #ec4899, #a855f7, #3b82f6) !important; /* pink via purple to blue */
             background-size: 200% auto;
             animation: gradient-x 3s ease infinite;
         }
-         
+        /* Override for KaTeX internal elements to inherit transparent color */
         .katex * {
             color: inherit !important;
             border-color: currentColor !important;
@@ -140,7 +140,7 @@
             border: 1px solid rgba(255, 255, 255, 0.5);
         }
 
-         
+        /* Sidebar Wavy Line */
         .wavy-line {
             background-image: url("data:image/svg+xml,%3Csvg width='40' height='1000' viewBox='0 0 40 1000' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 0C20 50 35 50 35 100C35 150 5 150 5 200C5 250 20 250 20 300C20 350 35 350 35 400C35 450 5 450 5 500C5 550 20 550 20 600C20 650 35 650 35 700C35 750 5 750 5 800C5 850 20 850 20 900' stroke='url(%23paint0_linear)' stroke-width='4' stroke-linecap='round'/%3E%3Cdefs%3E%3ClinearGradient id='paint0_linear' x1='20' y1='0' x2='20' y2='1000' gradientUnits='userSpaceOnUse'%3E%3Cstop stop-color='%2322D3EE'/%3E%3Cstop offset='0.5' stop-color='%23E879F9'/%3E%3Cstop offset='1' stop-color='%234ADE80'/%3E%3C/linearGradient%3E%3C/defs%3E%3C/svg%3E");
             background-repeat: repeat-y;
@@ -148,11 +148,11 @@
             height: 100%;
         }
 
-         
+        /* Custom Cursor and Selection */
         body {
             cursor: url("data:image/svg+xml,%3Csvg width='32' height='32' viewBox='0 0 32 32' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M5.5 3.5L19 16.5L11.5 17.5L9.5 23.5L5.5 3.5Z' fill='black' stroke='white' stroke-width='2' stroke-linejoin='round'/%3E%3C/svg%3E"), auto;
         }
-         
+        /* Iridescent Curved Background */
         .background-curves {
             position: fixed;
             inset: 0;
@@ -163,7 +163,7 @@
             background-position: center;
         }
         
-         
+        /* Inline Code Animation: Wavy Fluorescent Sea */
         .prose :not(pre) > code {
             position: relative;
             display: inline-block;
@@ -223,7 +223,7 @@
     <div class="background-curves"></div>
     <div class="grain-overlay"></div>
 
-    
+    <!-- Header -->
     <header class="w-full p-8 flex justify-between items-center z-50">
         <div class="flex items-center gap-2 group cursor-pointer" onclick="window.location.href='/'">
             <div class="w-3 h-3 rounded-full bg-black animate-pulse group-hover:bg-gradient-to-r group-hover:from-cyan-400 group-hover:to-purple-400"></div>
@@ -239,45 +239,32 @@
 
     <main class="flex-grow container mx-auto px-6 py-12 max-w-7xl relative">
         
-        
+        <!-- Background Blobs -->
         <div class="absolute top-0 left-1/4 w-96 h-96 bg-cyan-300/20 rounded-full blur-3xl -z-10 mix-blend-multiply animate-blob"></div>
         <div class="absolute top-0 right-1/4 w-96 h-96 bg-purple-300/20 rounded-full blur-3xl -z-10 mix-blend-multiply animate-blob animation-delay-2000"></div>
         <div class="absolute bottom-0 left-1/3 w-96 h-96 bg-pink-300/20 rounded-full blur-3xl -z-10 mix-blend-multiply animate-blob animation-delay-4000"></div>
 
-        
+        <!-- Hero Title (Simplified to avoid duplication) -->
         <div class="mb-16 relative">
-            
+            <!-- Divider Line -->
             <div class="absolute -bottom-8 left-0 w-full h-[1px] bg-gradient-to-r from-cyan-200 via-purple-200 to-transparent"></div>
             
             <h1 class="text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter leading-[0.9] uppercase">
-                <span class="block text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-purple-400 to-green-400 drop-shadow-sm">About Me</span>
+                <span class="block text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-purple-400 to-green-400 drop-shadow-sm">{{ .Title }}</span>
             </h1>
         </div>
 
-        
+        <!-- Content Grid -->
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 relative">
             
-            
+            <!-- Article Content (Left) -->
             <div class="lg:col-span-12 max-w-4xl mx-auto">
                 <article class="prose prose-lg max-w-none">
-                    
-                    <p>Oops，本科就读于杭州电子科技大学CS系28级，渴望灵感之风的吹拂也希望夯实工程能力。</p>
-<h2 id="虚度的时间">虚度的时间</h2>
-<p>探索了CS的必修四件套，go后端入门，NLP算法基础，以及一些电子元件的理论知识。还有一些比赛、外包项目。</p>
-<h2 id="痛定思痛">痛定思痛</h2>
-<p>接下来我将继续MLSys方向，同时分享一些ML和DL算法和论文复现。或许还有一些微调RAG提示词工程的笔记。靡不有初，鲜克有终。</p>
-<h2 id="关于博客">关于博客</h2>
-<p>理论会尽力严谨，如果有教程会尽力细致，如果有随笔会尽量随便。</p>
-<ul>
-<li>GitHub: <a href="https://github.com/KDZZZZZZ">KDZZZZZZ</a></li>
-<li>Email: <a href="mailto:2112335382@qq.com">QQ邮箱</a></li>
-<li>bilibili: <a href="https://space.bilibili.com/1938413314?spm_id_from=333.1007.0.0">在B站考研</a></li>
-</ul>
-<p>会赢的，对吧</p>
-
+                    <!-- Main Content -->
+                    {{ .Content }}
                 </article>
 
-                
+                <!-- Read Article Button (Stylistic) -->
                 <div class="mt-12 flex gap-4">
                     <button class="group relative px-8 py-3 rounded-full bg-gradient-to-r from-cyan-300 to-green-300 text-slate-900 font-bold text-sm tracking-wider uppercase shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 overflow-hidden" onclick="window.location.href='/posts'">
                         <span class="relative z-10 flex items-center gap-2">
@@ -289,12 +276,12 @@
                 </div>
             </div>
 
-            
+            <!-- Sidebar Removed -->
         </div>
 
     </main>
 
-    
+    <!-- Footer -->
     <footer class="w-full py-6 text-center text-slate-400 text-xs uppercase tracking-widest">
         &copy; 2024 Future.Blog - All Rights Reserved
     </footer>

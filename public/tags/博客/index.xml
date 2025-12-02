@@ -1,22 +1,19 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>博客 on Oops</title>
-    <link>http://localhost:61710/tags/%E5%8D%9A%E5%AE%A2/</link>
+    <link>http://localhost:64303/tags/%E5%8D%9A%E5%AE%A2/</link>
     <description>Recent content in 博客 on Oops</description>
-    <generator>Hugo -- 0.140.1</generator>
+    <generator>Hugo</generator>
     <language>en-us</language>
     <lastBuildDate>Sat, 28 Dec 2024 20:41:44 +0800</lastBuildDate>
-    <atom:link href="http://localhost:61710/tags/%E5%8D%9A%E5%AE%A2/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="http://localhost:64303/tags/%E5%8D%9A%E5%AE%A2/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>我的第一篇博客</title>
-      <link>http://localhost:61710/posts/my-first-post/</link>
+      <link>http://localhost:64303/posts/my-first-post/</link>
       <pubDate>Sat, 28 Dec 2024 20:41:44 +0800</pubDate>
-      <guid>http://localhost:61710/posts/my-first-post/</guid>
-      <description>&lt;h1 id=&#34;欢迎来到我的博客&#34;&gt;欢迎来到我的博客！&lt;/h1&gt;
-&lt;p&gt;这是我用 Hugo 搭建的新博客的第一篇文章。我很高兴能在这里开始分享我的想法和经历。&lt;/p&gt;
-&lt;h2 id=&#34;期待&#34;&gt;期待&lt;/h2&gt;
-&lt;p&gt;我会在这里写一些我感兴趣的话题。敬请期待更多内容！&lt;/p&gt;</description>
+      <guid>http://localhost:64303/posts/my-first-post/</guid>
+      <description>&lt;h1 id=&#34;欢迎来到我的博客&#34;&gt;欢迎来到我的博客！&lt;/h1&gt;&#xA;&lt;p&gt;这是我用 Hugo 搭建的新博客的第一篇文章。我很高兴能在这里开始分享我的想法和经历。&lt;/p&gt;&#xA;&lt;h2 id=&#34;期待&#34;&gt;期待&lt;/h2&gt;&#xA;&lt;p&gt;我会在这里写一些我感兴趣的话题。敬请期待更多内容！&lt;/p&gt;</description>
     </item>
   </channel>
 </rss>

@@ -1,25 +1,53 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Tags on Oops</title>
-    <link>http://localhost:61710/tags/</link>
+    <link>http://localhost:64303/tags/</link>
     <description>Recent content in Tags on Oops</description>
-    <generator>Hugo -- 0.140.1</generator>
+    <generator>Hugo</generator>
     <language>en-us</language>
-    <lastBuildDate>Sat, 28 Dec 2024 20:41:44 +0800</lastBuildDate>
-    <atom:link href="http://localhost:61710/tags/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Tue, 28 Jan 2025 00:00:00 +0800</lastBuildDate>
+    <atom:link href="http://localhost:64303/tags/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>博客</title>
-      <link>http://localhost:61710/tags/%E5%8D%9A%E5%AE%A2/</link>
-      <pubDate>Sat, 28 Dec 2024 20:41:44 +0800</pubDate>
-      <guid>http://localhost:61710/tags/%E5%8D%9A%E5%AE%A2/</guid>
+      <title>Compiler</title>
+      <link>http://localhost:64303/tags/compiler/</link>
+      <pubDate>Tue, 28 Jan 2025 00:00:00 +0800</pubDate>
+      <guid>http://localhost:64303/tags/compiler/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Deep Learning</title>
+      <link>http://localhost:64303/tags/deep-learning/</link>
+      <pubDate>Tue, 28 Jan 2025 00:00:00 +0800</pubDate>
+      <guid>http://localhost:64303/tags/deep-learning/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>TVM</title>
+      <link>http://localhost:64303/tags/tvm/</link>
+      <pubDate>Tue, 28 Jan 2025 00:00:00 +0800</pubDate>
+      <guid>http://localhost:64303/tags/tvm/</guid>
       <description></description>
     </item>
     <item>
       <title>Blog</title>
-      <link>http://localhost:61710/tags/blog/</link>
-      <pubDate>Sat, 28 Dec 2024 00:00:00 +0000</pubDate>
-      <guid>http://localhost:61710/tags/blog/</guid>
+      <link>http://localhost:64303/tags/blog/</link>
+      <pubDate>Sun, 29 Dec 2024 00:00:00 +0000</pubDate>
+      <guid>http://localhost:64303/tags/blog/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Personal</title>
+      <link>http://localhost:64303/tags/personal/</link>
+      <pubDate>Sun, 29 Dec 2024 00:00:00 +0000</pubDate>
+      <guid>http://localhost:64303/tags/personal/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>博客</title>
+      <link>http://localhost:64303/tags/%E5%8D%9A%E5%AE%A2/</link>
+      <pubDate>Sat, 28 Dec 2024 20:41:44 +0800</pubDate>
+      <guid>http://localhost:64303/tags/%E5%8D%9A%E5%AE%A2/</guid>
       <description></description>
     </item>
   </channel>

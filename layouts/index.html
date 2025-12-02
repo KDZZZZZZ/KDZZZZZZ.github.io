@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-	<meta name="generator" content="Hugo 0.140.1"><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=64303&amp;path=livereload" data-no-instant defer></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FUTURE.BLOG</title>
@@ -17,14 +16,14 @@
             to { transform: rotate(0deg); }
         }
         
-         
+        /* Outer Neon Ring Morphing */
         @keyframes morph-outer {
             0% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
             50% { border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%; }
             100% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
         }
 
-         
+        /* Inner White Block Morphing (More irregular fluid shape) */
         @keyframes morph-white-blob {
             0% { border-radius: 50% 50% 40% 60% / 50% 40% 60% 50%; transform: scale(0.92) rotate(0deg); }
             33% { border-radius: 60% 40% 50% 50% / 40% 60% 50% 50%; transform: scale(0.95) rotate(3deg); }
@@ -32,7 +31,7 @@
             100% { border-radius: 50% 50% 40% 60% / 50% 40% 60% 50%; transform: scale(0.92) rotate(0deg); }
         }
         
-         
+        /* Text Float Animation */
         @keyframes float-text {
             0%, 100% { transform: translateY(0px) rotate(-1deg); }
             50% { transform: translateY(-8px) rotate(1deg); }
@@ -46,16 +45,16 @@
         .animate-morph-blob { animation: morph-white-blob 7s ease-in-out infinite; }
         .animate-float-text { animation: float-text 5s ease-in-out infinite; }
 
-         
+        /* Custom writing mode */
         .writing-mode-vertical {
             writing-mode: vertical-rl;
         }
 
-         
+        /* Custom Cursor and Selection */
         body {
             cursor: url("data:image/svg+xml,%3Csvg width='32' height='32' viewBox='0 0 32 32' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M5.5 3.5L19 16.5L11.5 17.5L9.5 23.5L5.5 3.5Z' fill='black' stroke='white' stroke-width='2' stroke-linejoin='round'/%3E%3C/svg%3E"), auto;
         }
-         
+        /* Iridescent Curved Background */
         .background-curves {
             position: fixed;
             inset: 0;
@@ -66,7 +65,7 @@
             background-position: center;
         }
         
-         
+        /* Inline Code Animation: Wavy Fluorescent Sea */
         :not(pre) > code {
             position: relative;
             display: inline-block;
@@ -134,7 +133,7 @@
     <div class="background-curves"></div>
     <div class="grain-overlay"></div>
 
-    
+    <!-- Header -->
     <header class="fixed top-0 left-0 w-full p-8 flex justify-between items-center z-50">
         <div class="flex items-center gap-2 group cursor-pointer" onclick="window.location.href='/'">
             <div class="w-3 h-3 rounded-full bg-black animate-pulse group-hover:bg-gradient-to-r group-hover:from-cyan-400 group-hover:to-purple-400"></div>
@@ -148,44 +147,44 @@
         </nav>
     </header>
 
-    
+    <!-- Main Content Area -->
     <main class="relative w-full h-screen flex items-center justify-center">
         
-        
+        <!-- The Big Circle Assembly -->
         <div id="circle-assembly" class="relative flex-shrink-0" style="width: 520px; height: 520px;">
             
-            
+            <!-- Fluid Neon Halo -->
             <div class="absolute inset-[-60px] pointer-events-none flex items-center justify-center">
-                
+                <!-- Layer 1 -->
                 <div class="absolute inset-0 blur-[60px] opacity-30 animate-spin-medium animate-morph-outer" 
                      style="background: conic-gradient(from 0deg, #F472B6, #A78BFA, #60A5FA, #34D399, #FBBF24, #F472B6);"></div>
-                
+                <!-- Layer 2 -->
                 <div class="absolute inset-4 opacity-70 animate-spin-slow animate-morph-outer mix-blend-multiply" 
                      style="background: conic-gradient(from 0deg, #F472B6, #A78BFA, #60A5FA, #34D399, #FBBF24, #F472B6);"></div>
-                
+                <!-- Layer 3 -->
                 <div class="absolute inset-4 opacity-60 animate-spin-reverse-slow animate-morph-outer mix-blend-screen" 
                      style="background: conic-gradient(from 180deg, #2DD4BF, #60A5FA, #E879F9, #F472B6, #A78BFA, #2DD4BF);"></div>
             </div>
 
-            
+            <!-- Solid White Fluid Block + Oops Content -->
             <div class="absolute inset-0 flex items-center justify-center z-10">
                 <div class="absolute inset-0 bg-white shadow-2xl animate-morph-blob"></div>
                 
-                
+                <!-- Oops Content -->
                 <div class="absolute inset-0 flex flex-col items-center justify-center z-30 animate-float-text pointer-events-none">
                     <h1 class="text-7xl md:text-8xl font-black tracking-tighter text-black drop-shadow-2xl">Oops</h1>
                     <div class="mt-2 px-3 py-1 bg-black text-white text-[10px] font-mono tracking-[0.2em] rounded-full">SYSTEM_OVERLOAD</div>
                 </div>
             </div>
 
-            
+            <!-- Arc Menu Container -->
             <div id="arc-menu" class="absolute top-1/2 left-1/2 w-0 h-0 z-0">
-                
+                <!-- Articles will be injected here by JS -->
             </div>
 
-            
+            <!-- Scroll Indicator -->
             <div class="absolute -right-24 top-1/2 transform -translate-y-1/2 flex flex-col items-center gap-3 opacity-40">
-                
+                <!-- Chevron Up -->
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="animate-bounce"><path d="m18 15-6-6-6 6"/></svg>
                 
                 <div class="h-8 w-[1px] bg-slate-800/50"></div>
@@ -195,7 +194,7 @@
         </div>
     </main>
 
-    
+    <!-- Footer/Detail Panel -->
     <div id="detail-panel" class="fixed bottom-0 left-0 w-full bg-white/80 backdrop-blur-md border-t border-slate-50 p-6 transition-transform duration-500 z-40 translate-y-full">
          <div class="max-w-5xl mx-auto flex justify-between items-center">
              <div>
@@ -222,72 +221,37 @@
     </div>
 
     <script>
-        
+        // Data
         const ARTICLES = [
-            
+            {{ range $index, $page := where .Site.RegularPages "Section" "posts" }}
             {
-                id:  0 ,
-                title: "\"TVM Function objects and registration implementation\"",
-                date: "\"2025-01-28\"",
-                permalink: "\"/posts/tvm%E4%BB%A3%E7%A0%81%E5%BA%93%E8%A7%A3%E6%9E%90%E5%87%BD%E6%95%B0%E5%AF%B9%E8%B1%A1%E5%8F%8A%E6%B3%A8%E5%86%8C%E5%AE%9E%E7%8E%B0/\""
+                id: {{ $index }},
+                title: {{ $page.Title | jsonify }},
+                date: {{ $page.Date.Format "2006-01-02" | jsonify }},
+                permalink: {{ $page.RelPermalink | jsonify }}
             },
-            
-            {
-                id:  1 ,
-                title: "\"TVM代码库解析：Relay层结构与优化Pass\"",
-                date: "\"2025-01-28\"",
-                permalink: "\"/posts/tvm%E4%BB%A3%E7%A0%81%E5%BA%93%E8%A7%A3%E6%9E%90relay%E5%B1%82%E7%BB%93%E6%9E%84%E4%B8%8E%E4%BC%98%E5%8C%96pass/\""
-            },
-            
-            {
-                id:  2 ,
-                title: "\"Welcome to My Blog\"",
-                date: "\"2024-12-29\"",
-                permalink: "\"/posts/welcome-to-my-blog/\""
-            },
-            
-            {
-                id:  3 ,
-                title: "\"我的第一篇博客\"",
-                date: "\"2024-12-28\"",
-                permalink: "\"/posts/my-first-post/\""
-            },
-            
-            {
-                id:  4 ,
-                title: "\"Hello World\"",
-                date: "\"2024-12-28\"",
-                permalink: "\"/posts/hello-world/\""
-            },
-            
-            {
-                id:  5 ,
-                title: "\"\"",
-                date: "\"0001-01-01\"",
-                permalink: "\"/posts/optimizations/\""
-            },
-            
+            {{ end }}
         ];
 
-        
+        // State
         let scrollProgress = 0;
         let targetIndex = 0;
         let activeIndex = 0;
         
-        
+        // Constants
         const CIRCLE_RADIUS = 320;
         const ITEM_SPACING_DEGREES = 20;
         const VISIBLE_ARC_ANGLE = 70;
 
-        
+        // DOM Elements
         const arcMenu = document.getElementById('arc-menu');
         const detailPanel = document.getElementById('detail-panel');
         const activeTitle = document.getElementById('active-title');
         const readArticleBtn = document.getElementById('read-article-btn');
 
-        
+        // Render Function
         function render() {
-            arcMenu.innerHTML = ''; 
+            arcMenu.innerHTML = ''; // Clear existing
 
             ARTICLES.forEach((article, index) => {
                 const offset = index - scrollProgress;
@@ -306,22 +270,22 @@
 
                 const div = document.createElement('div');
                 div.className = `absolute flex items-center w-[600px] transition-all duration-300 ease-out origin-left`;
-                
+                // Fix: Active item horizontal (rotate 0deg)
                 div.style.transform = `translate(${x}px, ${y}px) ${isActive ? 'rotate(0deg)' : `rotate(${angleDeg}deg)`}`;
                 div.style.top = '0';
                 div.style.left = '0';
                 div.style.opacity = Math.max(0, opacity);
                 div.style.zIndex = isActive ? 50 : 10;
 
-                
+                // Connector Line
                 const line = document.createElement('div');
                 line.className = `h-[1px] bg-slate-200 mr-4 transition-all duration-500 ${isActive ? 'w-12 bg-black' : 'w-6'}`;
                 
-                
+                // Text Content Container
                 const content = document.createElement('div');
                 content.className = 'cursor-pointer group';
                 content.onclick = () => {
-                    
+                    // Fix: Click to navigate if already active
                     if (targetIndex === index) {
                         window.location.href = article.permalink;
                     } else {
@@ -331,14 +295,14 @@
                     }
                 };
 
-                
+                // Title
                 const h3 = document.createElement('h3');
-                
+                // Fix: Text color black when active (instead of gradient background)
                 h3.className = `text-2xl md:text-3xl transition-all duration-300 ${isActive ? 'text-black font-bold scale-100' : 'text-slate-300 group-hover:text-slate-400'}`;
                 h3.style.fontWeight = fontWeight;
                 h3.textContent = article.title;
 
-                
+                // Date (Hidden/Shown)
                 const dateDiv = document.createElement('div');
                 dateDiv.className = `overflow-hidden transition-all duration-500 ${isActive ? 'max-h-20 opacity-100 mt-1' : 'max-h-0 opacity-0'}`;
                 const dateP = document.createElement('p');
@@ -353,13 +317,13 @@
                 arcMenu.appendChild(div);
             });
 
-            
+            // Update Detail Panel
             if (activeIndex >= 0 && activeIndex < ARTICLES.length) {
                 detailPanel.classList.remove('translate-y-full');
                 detailPanel.classList.add('translate-y-0');
                 activeTitle.textContent = ARTICLES[activeIndex].title;
                 
-                
+                // Update button click
                 readArticleBtn.onclick = () => {
                     window.location.href = ARTICLES[activeIndex].permalink;
                 };
@@ -369,13 +333,13 @@
             }
         }
 
-        
+        // Animation Loop
         let animationFrameId;
 
         function animate() {
-            
-            
-            const factor = 0.08; 
+            // Linear Interpolation (Lerp) for smooth damping
+            // Formula: current = current + (target - current) * factor
+            const factor = 0.08; // Lower = smoother/slower
             const diff = targetIndex - scrollProgress;
             
             if (Math.abs(diff) > 0.001) {
@@ -394,17 +358,17 @@
             animate();
         }
 
-        
+        // Wheel Event
         let isScrolling = false;
         let scrollTimeout;
 
         window.addEventListener('wheel', (e) => {
-            e.preventDefault(); 
+            e.preventDefault(); // Prevent page scroll
 
-            
+            // Debounce/Throttle logic for "One Scroll One Switch"
             if (isScrolling) return;
 
-            
+            // Threshold to ignore tiny accidental scrolls
             if (Math.abs(e.deltaY) < 10) return;
 
             isScrolling = true;
@@ -415,23 +379,23 @@
                 targetIndex--;
             }
 
-            
+            // Clamp
             if (targetIndex < 0) targetIndex = 0;
             if (targetIndex > ARTICLES.length - 1) targetIndex = ARTICLES.length - 1;
 
             activeIndex = targetIndex;
             
-            
+            // Start animation
             startAnimation();
 
-            
+            // Reset scroll lock after delay
             clearTimeout(scrollTimeout);
             scrollTimeout = setTimeout(() => {
                 isScrolling = false;
-            }, 200); 
+            }, 200); // 200ms cooldown
         }, { passive: false });
 
-        
+        // Initial Render
         render();
 
     </script>
