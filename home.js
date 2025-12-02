@@ -167,9 +167,11 @@ export default function App() {
       
       {/* --- Header --- */}
       <header className="fixed top-0 left-0 w-full p-8 flex justify-between items-center z-50">
-        <div className="flex items-center gap-2">
-            <div className={`w-3 h-3 rounded-full bg-black animate-pulse`} />
-            <span className="font-bold text-xl tracking-tight text-slate-800">FUTURE.BLOG</span>
+        <div className="flex items-center gap-2 group cursor-pointer">
+            <div className="w-3 h-3 rounded-full bg-black animate-pulse group-hover:bg-gradient-to-r group-hover:from-cyan-400 group-hover:to-purple-400" />
+            <span className="font-bold text-xl tracking-tight text-slate-800 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-cyan-400 group-hover:via-purple-400 group-hover:to-green-400 transition-all duration-300">
+                OOPS.BLOG
+            </span>
         </div>
         <nav className="hidden md:flex gap-8 text-sm font-medium text-slate-400">
             <a href="#" className="hover:text-slate-900 transition-colors">Home</a>
