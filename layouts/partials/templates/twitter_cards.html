@@ -1,0 +1,16 @@
+{{- $images := slice -}}
+{{- if .Params.cover.image -}}
+  {{- $images = $images | append (printf "%s%s" .Permalink .Params.cover.image) -}}
+{{- end -}}
+{{- if .Params.images -}}
+  {{- range first 6 .Params.images -}}
+    {{- $images = $images | append ( . | absURL) -}}
+  {{- end -}}
+{{- end -}}
+
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="{{ .Title }}" />
+<meta name="twitter:description" content="{{ with .Description }}{{ . }}{{ else }}{{ if .IsPage }}{{ .Summary }}{{ else }}{{ with .Site.Params.description }}{{ . }}{{ end }}{{ end }}{{ end }}"/>
+{{- if gt (len $images) 0 -}}
+<meta name="twitter:image" content="{{ index $images 0 }}"/>
+{{- end -}}
