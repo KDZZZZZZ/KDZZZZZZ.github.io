@@ -1,278 +1,279 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Oops</title><link>https://KDZZZZZZ.github.io/</link><description>Recent content on Oops</description><generator>Hugo -- 0.143.1</generator><language>en-us</language><lastBuildDate>Tue, 28 Jan 2025 00:00:00 +0800</lastBuildDate><atom:link href="https://KDZZZZZZ.github.io/index.xml" rel="self" type="application/rss+xml"/><item><title>TVM Function objects and registration implementation</title><link>https://KDZZZZZZ.github.io/posts/tvm%E4%BB%A3%E7%A0%81%E5%BA%93%E8%A7%A3%E6%9E%90%E5%87%BD%E6%95%B0%E5%AF%B9%E8%B1%A1%E5%8F%8A%E6%B3%A8%E5%86%8C%E5%AE%9E%E7%8E%B0/</link><pubDate>Tue, 28 Jan 2025 00:00:00 +0800</pubDate><guid>https://KDZZZZZZ.github.io/posts/tvm%E4%BB%A3%E7%A0%81%E5%BA%93%E8%A7%A3%E6%9E%90%E5%87%BD%E6%95%B0%E5%AF%B9%E8%B1%A1%E5%8F%8A%E6%B3%A8%E5%86%8C%E5%AE%9E%E7%8E%B0/</guid><description>&lt;p>首先给出TVM中注册自定义函数和调用自定义函数的方法&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">// 注册函数
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>TVM_REGISTER_GLOBAL(&lt;span style="color:#e6db74">&amp;#34;add&amp;#34;&lt;/span>).set_body([](TVMArgs args, TVMRetValue&lt;span style="color:#f92672">*&lt;/span> ret) {
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">int&lt;/span> a &lt;span style="color:#f92672">=&lt;/span> args[&lt;span style="color:#ae81ff">0&lt;/span>];
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">int&lt;/span> b &lt;span style="color:#f92672">=&lt;/span> args[&lt;span style="color:#ae81ff">1&lt;/span>];
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">*&lt;/span>ret &lt;span style="color:#f92672">=&lt;/span> a &lt;span style="color:#f92672">+&lt;/span> b;
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>});
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">// 调用函数
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>PackedFunc add &lt;span style="color:#f92672">=&lt;/span> runtime&lt;span style="color:#f92672">::&lt;/span>Registry&lt;span style="color:#f92672">::&lt;/span>Get(&lt;span style="color:#e6db74">&amp;#34;add&amp;#34;&lt;/span>);
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">int&lt;/span> result &lt;span style="color:#f92672">=&lt;/span> add(&lt;span style="color:#ae81ff">3&lt;/span>, &lt;span style="color:#ae81ff">5&lt;/span>); &lt;span style="color:#75715e">// 返回 8
-&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>TVM实现注册Lambda函数的&lt;code>set_body&lt;/code>函数是一个指向&lt;code>PackedFunc&lt;/code>类型的指针.&lt;/p>
-&lt;p>&lt;code>TVM_REGISTER_GLOBAL&lt;/code>的实现如下：&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#define REGISTER_GLOBAL(name, func) \
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"> tvm::runtime::FRegistry::Register(name, tvm::runtime::PackedFunc(func))
-&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>使用全局哈希表&lt;code>FRegistry&lt;/code>注册函数。通过宏&lt;code>REGISTER_GLOBAL(&amp;quot;func_name&amp;quot;, MyFunction)&lt;/code>将函数与名称绑定，后续通过&lt;code>GetPackedFunc(&amp;quot;func_name&amp;quot;)&lt;/code>查找.&lt;/p>
-&lt;p>使用&lt;code>REGISTER_GLOBAL&lt;/code>宏将函数与名称绑定。这个宏会调用&lt;code>FRegistry::Register&lt;/code>方法，将函数存储到全局哈希表中。&lt;/p>
-&lt;p>&lt;code>PackedFunc&lt;/code>类型继承自&lt;code>ObjectRef&lt;/code>基类，实现了运算符重载，又用&lt;code>make_object&lt;/code>函数创建一个&lt;code>PackedFuncSubObj&lt;/code>类型对象，这个对象可以储存可调用对象.&lt;/p>
-&lt;p>&lt;code>PackedFuncSubObj&lt;/code>继承自&lt;code>PackedFuncObj&lt;/code>, 这是&lt;code>Object&lt;/code>的子类，&lt;code>Object&lt;/code>实现了引用计数和类型检查，&lt;code>PackedFunObj&lt;/code>对函数指针、参数和返回值指针进行了打包。&lt;/p>
-&lt;p>&lt;code>PackedFuncSubObj&lt;/code>类型用&lt;code>std::remove_reference&lt;/code>和&lt;code>std::remove_cv&lt;/code>进行了类型擦除，对&lt;code>const&lt;/code>、&lt;code>volatile&lt;/code>和引用进行去壳，移除我们不需要的特性.&lt;/p>
-&lt;p>&lt;code>PackedFuncSubObj&lt;/code>中定义了&lt;code>Extractor&lt;/code>提取器结构，提取器内部的&lt;code>Call&lt;/code>函数是一个指针，用来调用可调用对象。&lt;/p>
-&lt;p>接下来解释一下参数和返回值的数据结构。&lt;/p>
-&lt;p>分别是&lt;code>TVMArgs&lt;/code>和&lt;code>TVMRetValue&lt;/code>,都使用了联合体&lt;code>TVMValue&lt;/code>对数据进行打包并进行了运算符重载和用于数据传递的基本方法。&lt;/p>
-&lt;p>以上所有的实现基本都在&lt;code>include/tvm/runtime/packed_func.h&lt;/code>、&lt;code>include/tvm/runtime/registry.h&lt;/code>和&lt;code>src/runtime/registry.cc&lt;/code>&lt;/p>
-&lt;p>&lt;code>Python&lt;/code>封装了&lt;code>ctypes&lt;/code>库，能够通过&lt;code>name&lt;/code>查找全局注册的C++函数并获得函数句柄，调用后得到传回的返回值。
-其中对数据类型的包装也是TVM实现任意语言互相调用的关键.&lt;/p></description></item><item><title>TVM代码库解析：Relay层结构与优化Pass</title><link>https://KDZZZZZZ.github.io/posts/tvm%E4%BB%A3%E7%A0%81%E5%BA%93%E8%A7%A3%E6%9E%90relay%E5%B1%82%E7%BB%93%E6%9E%84%E4%B8%8E%E4%BC%98%E5%8C%96pass/</link><pubDate>Tue, 28 Jan 2025 00:00:00 +0800</pubDate><guid>https://KDZZZZZZ.github.io/posts/tvm%E4%BB%A3%E7%A0%81%E5%BA%93%E8%A7%A3%E6%9E%90relay%E5%B1%82%E7%BB%93%E6%9E%84%E4%B8%8E%E4%BC%98%E5%8C%96pass/</guid><description>&lt;p>relay层主要由数据结构类(如Constant)和节点类(如ConstantNode)组成。
-下面梳理一下他们的继承链。&lt;/p>
-&lt;p>ObjectRef → BaseExpr → RelayExpr → Constant&lt;/p>
-&lt;p>Object → BaseExprNode → RelayExprNode → ConstantNode&lt;/p>
-&lt;blockquote>
-&lt;p>源代码库中使用了&lt;code>using ExprNode = tvm::RelayExprNode;&lt;/code>&lt;/p>&lt;/blockquote>
-&lt;p>这里先赘述一下上面每个类的的功能：&lt;/p>
-&lt;h4 id="1-object-includetvmruntimeobjecth">&lt;strong>(1) &lt;code>Object&lt;/code> (include/tvm/runtime/object.h)&lt;/strong>&lt;/h4>
-&lt;ul>
-&lt;li>&lt;strong>功能&lt;/strong>：
-&lt;ul>
-&lt;li>TVM &lt;strong>所有对象的基类&lt;/strong>，提供 &lt;strong>引用计数&lt;/strong> 和 &lt;strong>类型系统&lt;/strong> 支持&lt;/li>
-&lt;li>实现 &lt;code>RefCount&lt;/code> 机制（通过 &lt;code>use_count&lt;/code> 成员）&lt;/li>
-&lt;li>提供 &lt;code>type_index&lt;/code> 用于运行时类型识别（RTTI）&lt;/li>
-&lt;/ul>
-&lt;/li>
-&lt;li>&lt;strong>关键方法&lt;/strong>：
-&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">virtual&lt;/span> &lt;span style="color:#66d9ef">uint32_t&lt;/span> &lt;span style="color:#a6e22e">type_index&lt;/span>() &lt;span style="color:#66d9ef">const&lt;/span>; &lt;span style="color:#75715e">// 类型标识
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>&lt;span style="color:#66d9ef">void&lt;/span> &lt;span style="color:#a6e22e">IncRef&lt;/span>(); &lt;span style="color:#75715e">// 增加引用计数
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>&lt;span style="color:#66d9ef">void&lt;/span> &lt;span style="color:#a6e22e">DecRef&lt;/span>(); &lt;span style="color:#75715e">// 减少引用计数
-&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/li>
-&lt;/ul>
-&lt;h4 id="2-objectref-includetvmruntimeobjecth">&lt;strong>(2) &lt;code>ObjectRef&lt;/code> (include/tvm/runtime/object.h)&lt;/strong>&lt;/h4>
-&lt;ul>
-&lt;li>&lt;strong>功能&lt;/strong>：
-&lt;ul>
-&lt;li>所有 &lt;strong>对象引用&lt;/strong> 的基类模板（如 &lt;code>Constant&lt;/code> 本质是 &lt;code>ObjectRef&amp;lt;ConstantNode&amp;gt;&lt;/code>）&lt;/li>
-&lt;li>通过智能指针 (&lt;code>ObjectPtr&lt;/code>) &lt;strong>管理 Object 子类的生命周期&lt;/strong>&lt;/li>
-&lt;li>提供 &lt;strong>类型安全转换接口&lt;/strong>（如 &lt;code>as&amp;lt;T&amp;gt;()&lt;/code>）&lt;/li>
-&lt;/ul>
-&lt;/li>
-&lt;li>&lt;strong>关键行为&lt;/strong>：
-&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">template&lt;/span>&lt;span style="color:#f92672">&amp;lt;&lt;/span>&lt;span style="color:#66d9ef">typename&lt;/span> T&lt;span style="color:#f92672">&amp;gt;&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">const&lt;/span> T&lt;span style="color:#f92672">*&lt;/span> as() &lt;span style="color:#66d9ef">const&lt;/span>; &lt;span style="color:#75715e">// 安全类型转换
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>&lt;span style="color:#66d9ef">operator&lt;/span> &lt;span style="color:#a6e22e">bool&lt;/span>() &lt;span style="color:#66d9ef">const&lt;/span>; &lt;span style="color:#75715e">// 检查是否非空
-&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/li>
-&lt;/ul>
-&lt;h4 id="3-baseexprnode-includetvmirexprh">&lt;strong>(3) &lt;code>BaseExprNode&lt;/code> (include/tvm/ir/expr.h)&lt;/strong>&lt;/h4>
-&lt;ul>
-&lt;li>&lt;strong>继承关系&lt;/strong>：&lt;code>Object&lt;/code> → &lt;code>BaseExprNode&lt;/code>&lt;/li>
-&lt;li>&lt;strong>功能&lt;/strong>：
-&lt;ul>
-&lt;li>所有 &lt;strong>表达式节点&lt;/strong> 的抽象基类&lt;/li>
-&lt;li>定义表达式通用接口：
-&lt;ul>
-&lt;li>数据类型 (&lt;code>dtype&lt;/code>)&lt;/li>
-&lt;li>源码位置 (&lt;code>span&lt;/code>)&lt;/li>
-&lt;li>虚函数 &lt;code>SEqualReduce&lt;/code>（用于结构相等性比较）&lt;/li>
-&lt;/ul>
-&lt;/li>
-&lt;/ul>
-&lt;/li>
-&lt;li>&lt;strong>关键成员&lt;/strong>：
-&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>runtime&lt;span style="color:#f92672">::&lt;/span>DataType dtype; &lt;span style="color:#75715e">// 数据类型（如 float32）
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>Span span; &lt;span style="color:#75715e">// 源码位置信息（用于调试）
-&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/li>
-&lt;/ul>
-&lt;h4 id="4-baseexpr-includetvmirexprh">&lt;strong>(4) &lt;code>BaseExpr&lt;/code> (include/tvm/ir/expr.h)&lt;/strong>&lt;/h4>
-&lt;ul>
-&lt;li>&lt;strong>继承关系&lt;/strong>：&lt;code>ObjectRef&lt;/code> → &lt;code>BaseExpr&lt;/code>&lt;/li>
-&lt;li>&lt;strong>功能&lt;/strong>：
-&lt;ul>
-&lt;li>所有 &lt;strong>表达式引用&lt;/strong> 的基类（如 &lt;code>Constant&lt;/code>、&lt;code>Var&lt;/code> 等）&lt;/li>
-&lt;li>提供对 &lt;code>BaseExprNode&lt;/code> 的通用访问接口&lt;/li>
-&lt;li>重载运算符（如 &lt;code>operator==&lt;/code>）实现表达式比较&lt;/li>
-&lt;/ul>
-&lt;/li>
-&lt;/ul>
-&lt;h4 id="5-relayexprnode-includetvmirexprh">&lt;strong>(5) &lt;code>RelayExprNode&lt;/code> (include/tvm/ir/expr.h)&lt;/strong>&lt;/h4>
-&lt;ul>
-&lt;li>&lt;strong>继承关系&lt;/strong>：&lt;code>BaseExprNode&lt;/code> → &lt;code>RelayExprNode&lt;/code>&lt;/li>
-&lt;li>&lt;strong>功能&lt;/strong>：
-&lt;ul>
-&lt;li>&lt;strong>Relay 表达式体系的节点基类&lt;/strong>，定义所有高层计算图节点的通用行为&lt;/li>
-&lt;li>存储 Relay 特有的元数据：
-&lt;ul>
-&lt;li>&lt;strong>类型信息&lt;/strong> (&lt;code>checked_type_&lt;/code>): 类型推断后的结果（如 &lt;code>TensorType(shape=[1,3], dtype=float32)&lt;/code>）&lt;/li>
-&lt;li>&lt;strong>源码位置&lt;/strong> (&lt;code>span&lt;/code>): 用于调试和错误定位&lt;/li>
-&lt;/ul>
-&lt;/li>
-&lt;li>实现 &lt;strong>结构等价性检查&lt;/strong> (&lt;code>SEqualReduce&lt;/code>) 和 &lt;strong>哈希生成&lt;/strong> (&lt;code>SHashReduce&lt;/code>) 的虚函数&lt;/li>
-&lt;li>支持 &lt;strong>递归遍历子节点&lt;/strong> 的接口（用于优化 Pass 或分析）&lt;/li>
-&lt;/ul>
-&lt;/li>
-&lt;li>&lt;strong>关键成员&lt;/strong>：
-&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">mutable&lt;/span> Type checked_type_; &lt;span style="color:#75715e">// 类型推断结果（可缓存）
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>Span span; &lt;span style="color:#75715e">// 源码位置信息
-&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/li>
-&lt;li>&lt;strong>典型子类&lt;/strong>：
-&lt;ul>
-&lt;li>&lt;code>ConstantNode&lt;/code>（常量）&lt;/li>
-&lt;li>&lt;code>VarNode&lt;/code>（变量）&lt;/li>
-&lt;li>&lt;code>CallNode&lt;/code>（函数调用）&lt;/li>
-&lt;li>&lt;code>FunctionNode&lt;/code>（函数定义）&lt;/li>
-&lt;/ul>
-&lt;/li>
-&lt;/ul>
-&lt;h4 id="6-relayexpr-includetvmirexprh">&lt;strong>(6) &lt;code>RelayExpr&lt;/code> (include/tvm/ir/expr.h)&lt;/strong>&lt;/h4>
-&lt;ul>
-&lt;li>&lt;strong>继承关系&lt;/strong>：&lt;code>BaseExpr&lt;/code> → &lt;code>RelayExpr&lt;/code>&lt;/li>
-&lt;li>&lt;strong>功能&lt;/strong>：
-&lt;ul>
-&lt;li>通过&lt;code>TVM_DEFINE_OBJECT_REF_METHODS&lt;/code>宏定义了对象引用管理、类型转换和节点访问的功能&lt;/li>
-&lt;/ul>
-&lt;/li>
-&lt;/ul>
-&lt;h4 id="7-constantnode-includetvmrelayexprh">&lt;strong>(7) &lt;code>ConstantNode&lt;/code> (include/tvm/relay/expr.h)&lt;/strong>&lt;/h4>
-&lt;ul>
-&lt;li>&lt;strong>继承关系&lt;/strong>：&lt;code>RelayExprNode&lt;/code> → &lt;code>ConstantNode&lt;/code>&lt;/li>
-&lt;li>&lt;strong>功能&lt;/strong>：
-&lt;ul>
-&lt;li>&lt;strong>存储常量数据的节点&lt;/strong>（具体实现）&lt;/li>
-&lt;li>持有 &lt;code>runtime::NDArray&lt;/code> 表示常量值&lt;/li>
-&lt;li>实现 &lt;code>SEqualReduce&lt;/code> 比较常量值是否相等&lt;/li>
-&lt;li>实现 &lt;code>SHashReduce&lt;/code> 生成哈希值&lt;/li>
-&lt;/ul>
-&lt;/li>
-&lt;li>&lt;strong>关键成员&lt;/strong>：
-&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>runtime&lt;span style="color:#f92672">::&lt;/span>NDArray data; &lt;span style="color:#75715e">// 常量数据（可以是标量或张量）
-&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/li>
-&lt;/ul>
-&lt;h4 id="8-constant-includetvmrelayexprh">&lt;strong>(8) &lt;code>Constant&lt;/code> (include/tvm/relay/expr.h)&lt;/strong>&lt;/h4>
-&lt;ul>
-&lt;li>&lt;strong>继承关系&lt;/strong>：&lt;code>RelayExpr&lt;/code> → &lt;code>Constant&lt;/code>&lt;/li>
-&lt;li>&lt;strong>功能&lt;/strong>：
-&lt;ul>
-&lt;li>&lt;strong>用户直接使用的常量包装类&lt;/strong>&lt;/li>
-&lt;li>构造函数封装 &lt;code>ConstantNode&lt;/code> 的创建&lt;/li>
-&lt;li>提供对 &lt;code>data&lt;/code> 的安全访问方法&lt;/li>
-&lt;li>示例用法：
-&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>NDArray arr &lt;span style="color:#f92672">=&lt;/span> ...;
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Constant c &lt;span style="color:#f92672">=&lt;/span> Constant(arr); &lt;span style="color:#75715e">// 创建常量
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>Expr expr &lt;span style="color:#f92672">=&lt;/span> c; &lt;span style="color:#75715e">// 可隐式转换为基类
-&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/li>
-&lt;/ul>
-&lt;/li>
-&lt;/ul>
-&lt;p>有了对基类的功能认识，我们只需要继续了解类似&lt;code>Constant&lt;/code>和&lt;code>ConstantNode&lt;/code>类的其他主要类实现。&lt;/p></description></item><item><title>Welcome to My Blog</title><link>https://KDZZZZZZ.github.io/posts/welcome-to-my-blog/</link><pubDate>Sun, 29 Dec 2024 00:00:00 +0000</pubDate><guid>https://KDZZZZZZ.github.io/posts/welcome-to-my-blog/</guid><description>&lt;h2 id="welcome">Welcome!&lt;/h2>
-&lt;p>Hello everyone! This is my new blog built with Hugo. I&amp;rsquo;m excited to share my thoughts and experiences here.&lt;/p>
-&lt;h3 id="what-to-expect">What to Expect&lt;/h3>
-&lt;p>In this blog, I plan to write about:&lt;/p>
-&lt;ol>
-&lt;li>Technology and Programming&lt;/li>
-&lt;li>Learning experiences&lt;/li>
-&lt;li>Personal growth&lt;/li>
-&lt;li>Interesting projects&lt;/li>
-&lt;/ol>
-&lt;h3 id="why-i-started-blogging">Why I Started Blogging&lt;/h3>
-&lt;p>I believe writing is a great way to:&lt;/p>
-&lt;ul>
-&lt;li>Organize thoughts&lt;/li>
-&lt;li>Share knowledge&lt;/li>
-&lt;li>Document learning journey&lt;/li>
-&lt;li>Connect with like-minded people&lt;/li>
-&lt;/ul>
-&lt;p>Stay tuned for more posts!&lt;/p></description></item><item><title>我的第一篇博客</title><link>https://KDZZZZZZ.github.io/posts/my-first-post/</link><pubDate>Sat, 28 Dec 2024 20:41:44 +0800</pubDate><guid>https://KDZZZZZZ.github.io/posts/my-first-post/</guid><description>&lt;h1 id="欢迎来到我的博客">欢迎来到我的博客！&lt;/h1>
-&lt;p>这是我用 Hugo 搭建的新博客的第一篇文章。我很高兴能在这里开始分享我的想法和经历。&lt;/p>
-&lt;h2 id="期待">期待&lt;/h2>
-&lt;p>我会在这里写一些我感兴趣的话题。敬请期待更多内容！&lt;/p></description></item><item><title>About Me</title><link>https://KDZZZZZZ.github.io/about/</link><pubDate>Sat, 28 Dec 2024 00:00:00 +0000</pubDate><guid>https://KDZZZZZZ.github.io/about/</guid><description>&lt;p>Oops，本科就读于杭州电子科技大学CS系28级，渴望灵感之风的吹拂也希望夯实工程能力。&lt;/p>
-&lt;h2 id="虚度的时间">虚度的时间&lt;/h2>
-&lt;p>探索了CS的必修四件套，go后端入门，NLP算法基础，以及一些电子元件的理论知识。还有一些比赛、外包项目。&lt;/p>
-&lt;h2 id="痛定思痛">痛定思痛&lt;/h2>
-&lt;p>接下来我将继续MLSys方向，同时分享一些ML和DL算法和论文复现。或许还有一些微调RAG提示词工程的笔记。靡不有初，鲜克有终。&lt;/p>
-&lt;h2 id="关于博客">关于博客&lt;/h2>
-&lt;p>理论会尽力严谨，如果有教程会尽力细致，如果有随笔会尽量随便。&lt;/p>
-&lt;ul>
-&lt;li>GitHub: &lt;a href="https://github.com/KDZZZZZZ">KDZZZZZZ&lt;/a>&lt;/li>
-&lt;li>Email: &lt;a href="mailto:2112335382@qq.com">QQ邮箱&lt;/a>&lt;/li>
-&lt;li>bilibili: &lt;a href="https://space.bilibili.com/1938413314?spm_id_from=333.1007.0.0">在B站考研&lt;/a>&lt;/li>
-&lt;/ul>
-&lt;p>会赢的，对吧&lt;/p></description></item><item><title>Hello World</title><link>https://KDZZZZZZ.github.io/posts/hello-world/</link><pubDate>Sat, 28 Dec 2024 00:00:00 +0000</pubDate><guid>https://KDZZZZZZ.github.io/posts/hello-world/</guid><description>&lt;h2 id="hello-world">Hello, World!&lt;/h2>
-&lt;p>This is my first blog post. Here, I&amp;rsquo;ll share some interesting tech insights and life experiences.&lt;/p>
-&lt;h3 id="why-start-a-blog">Why Start a Blog?&lt;/h3>
-&lt;p>Blogging helps me:&lt;/p>
-&lt;ol>
-&lt;li>Document my learning journey&lt;/li>
-&lt;li>Share technical insights&lt;/li>
-&lt;li>Connect with like-minded people&lt;/li>
-&lt;/ol>
-&lt;h3 id="future-plans">Future Plans&lt;/h3>
-&lt;p>I plan to write about:&lt;/p>
-&lt;ul>
-&lt;li>Programming techniques&lt;/li>
-&lt;li>Learning experiences&lt;/li>
-&lt;li>Life reflections&lt;/li>
-&lt;/ul>
-&lt;p>Stay tuned!&lt;/p></description></item><item><title/><link>https://KDZZZZZZ.github.io/posts/optimizations/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://KDZZZZZZ.github.io/posts/optimizations/</guid><description>&lt;h1 id="tvm-relay-ir-optimization-methods">TVM Relay IR Optimization Methods&lt;/h1>
-&lt;h2 id="优化方法概述">优化方法概述&lt;/h2>
-&lt;p>本文档详细介绍了TVM Relay IR中实现的各种优化方法。每个优化方法都包含其数学原理、算法实现和实际应用示例。这些优化方法共同构成了TVM的优化体系,旨在提高深度学习模型的执行效率。&lt;/p>
-&lt;h2 id="table-of-contents">Table of Contents&lt;/h2>
-&lt;ul>
-&lt;li>&lt;a href="#tvm-relay-ir-optimization-methods">TVM Relay IR Optimization Methods&lt;/a>
-&lt;ul>
-&lt;li>&lt;a href="#%E4%BC%98%E5%8C%96%E6%96%B9%E6%B3%95%E6%A6%82%E8%BF%B0">优化方法概述&lt;/a>&lt;/li>
-&lt;li>&lt;a href="#table-of-contents">Table of Contents&lt;/a>
-&lt;ul>
-&lt;li>&lt;a href="#1-dead_codecc---%E6%AD%BB%E4%BB%A3%E7%A0%81%E6%B6%88%E9%99%A4-%E7%BB%86%E5%8C%96">1. &lt;code>dead_code.cc&lt;/code> - 死代码消除 细化&lt;/a>&lt;/li>
-&lt;li>&lt;a href="#2-eliminate_common_subexprcc---%E5%85%AC%E5%85%B1%E5%AD%90%E8%A1%A8%E8%BE%BE%E5%BC%8F%E6%B6%88%E9%99%A4-%E7%BB%86%E5%8C%96">2. &lt;code>eliminate_common_subexpr.cc&lt;/code> - 公共子表达式消除 细化&lt;/a>&lt;/li>
-&lt;li>&lt;a href="#3-fold_constantcc---%E5%B8%B8%E9%87%8F%E6%8A%98%E5%8F%A0-%E7%BB%86%E5%8C%96">3. &lt;code>fold_constant.cc&lt;/code> - 常量折叠 细化&lt;/a>&lt;/li>
-&lt;li>&lt;a href="#4-fuse_opscc---%E7%AE%97%E5%AD%90%E8%9E%8D%E5%90%88%E4%BC%98%E5%8C%96-%E7%BB%86%E5%8C%96">4. &lt;code>fuse_ops.cc&lt;/code> - 算子融合优化 细化&lt;/a>&lt;/li>
-&lt;li>&lt;a href="#5-transform_layouth-convert_layoutcc---%E5%B8%83%E5%B1%80%E8%BD%AC%E6%8D%A2-%E7%BB%86%E5%8C%96">5. &lt;code>transform_layout.h&lt;/code>, &lt;code>convert_layout.cc&lt;/code> - 布局转换 细化&lt;/a>&lt;/li>
-&lt;li>&lt;a href="#6-type_infercc---%E7%B1%BB%E5%9E%8B%E6%8E%A8%E6%96%AD-%E7%BB%86%E5%8C%96">6. &lt;code>type_infer.cc&lt;/code> - 类型推断 细化&lt;/a>&lt;/li>
-&lt;li>&lt;a href="#7-to_a_normal_formcc---a-%E8%8C%83%E5%BC%8F%E8%BD%AC%E6%8D%A2-%E7%BB%86%E5%8C%96">7. &lt;code>to_a_normal_form.cc&lt;/code> - A-范式转换 细化&lt;/a>&lt;/li>
-&lt;li>&lt;a href="#8-to_graph_normal_formcc---%E5%9B%BE%E8%8C%83%E5%BC%8F%E8%BD%AC%E6%8D%A2-%E7%BB%86%E5%8C%96">8. &lt;code>to_graph_normal_form.cc&lt;/code> - 图范式转换 细化&lt;/a>&lt;/li>
-&lt;li>&lt;a href="#9-partial_evalcc---%E9%83%A8%E5%88%86%E6%B1%82%E5%80%BC-%E7%BB%86%E5%8C%96">9. &lt;code>partial_eval.cc&lt;/code> - 部分求值 细化&lt;/a>&lt;/li>
-&lt;li>&lt;a href="#10-loop_partitioncc---%E5%BE%AA%E7%8E%AF%E5%88%86%E5%9D%97%E4%BC%98%E5%8C%96-%E7%BB%86%E5%8C%96">10. &lt;code>loop_partition.cc&lt;/code> - 循环分块优化 细化&lt;/a>&lt;/li>
-&lt;li>&lt;a href="#11-loop_unrollcc---%E5%BE%AA%E7%8E%AF%E5%B1%95%E5%BC%80-%E7%BB%86%E5%8C%96">11. &lt;code>loop_unroll.cc&lt;/code> - 循环展开 细化&lt;/a>&lt;/li>
-&lt;li>&lt;a href="#12-loop_vectorizecc---%E5%BE%AA%E7%8E%AF%E5%90%91%E9%87%8F%E5%8C%96-%E7%BB%86%E5%8C%96">12. &lt;code>loop_vectorize.cc&lt;/code> - 循环向量化 细化&lt;/a>&lt;/li>
-&lt;li>&lt;a href="#13-memory_promotioncc---%E5%86%85%E5%AD%98%E6%8F%90%E5%8D%87%E4%BC%98%E5%8C%96-%E7%BB%86%E5%8C%96">13. &lt;code>memory_promotion.cc&lt;/code> - 内存提升优化 细化&lt;/a>&lt;/li>
-&lt;li>&lt;a href="#14-simplify_exprcc---%E8%A1%A8%E8%BE%BE%E5%BC%8F%E7%AE%80%E5%8C%96-%E7%BB%86%E5%8C%96">14. &lt;code>simplify_expr.cc&lt;/code> - 表达式简化 细化&lt;/a>&lt;/li>
-&lt;li>&lt;a href="#15-storage_rewritecc---%E5%AD%98%E5%82%A8%E9%87%8D%E5%86%99%E4%BC%98%E5%8C%96-%E7%BB%86%E5%8C%96">15. &lt;code>storage_rewrite.cc&lt;/code> - 存储重写优化 细化&lt;/a>&lt;/li>
-&lt;li>&lt;a href="#16-parallelizecc---%E5%B9%B6%E8%A1%8C%E5%8C%96%E4%BC%98%E5%8C%96-%E7%BB%86%E5%8C%96">16. &lt;code>parallelize.cc&lt;/code> - 并行化优化 细化&lt;/a>&lt;/li>
-&lt;li>&lt;a href="#17-memory_alloccc---%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E4%BC%98%E5%8C%96-%E7%BB%86%E5%8C%96">17. &lt;code>memory_alloc.cc&lt;/code> - 内存分配优化 细化&lt;/a>&lt;/li>
-&lt;li>&lt;a href="#18-dataflow_analysiscc---%E6%95%B0%E6%8D%AE%E6%B5%81%E5%88%86%E6%9E%90-%E7%BB%86%E5%8C%96">18. &lt;code>dataflow_analysis.cc&lt;/code> - 数据流分析 细化&lt;/a>&lt;/li>
-&lt;li>&lt;a href="#19-loop_invariantcc---%E5%BE%AA%E7%8E%AF%E4%B8%8D%E5%8F%98%E5%BC%8F%E5%A4%96%E6%8F%90-%E7%BB%86%E5%8C%96">19. &lt;code>loop_invariant.cc&lt;/code> - 循环不变式外提 细化&lt;/a>&lt;/li>
-&lt;li>&lt;a href="#20-bound_check_eliminatecc---%E8%BE%B9%E7%95%8C%E6%A3%80%E6%9F%A5%E6%B6%88%E9%99%A4-%E7%BB%86%E5%8C%96">20. &lt;code>bound_check_eliminate.cc&lt;/code> - 边界检查消除 细化&lt;/a>&lt;/li>
-&lt;li>&lt;a href="#21-common_subexp_eliminatecc---%E5%85%AC%E5%85%B1%E5%AD%90%E8%A1%A8%E8%BE%BE%E5%BC%8F%E6%B6%88%E9%99%A4-%E7%BB%86%E5%8C%96">21. &lt;code>common_subexp_eliminate.cc&lt;/code> - 公共子表达式消除 细化&lt;/a>&lt;/li>
-&lt;li>&lt;a href="#22-dead_code_eliminatecc---%E6%AD%BB%E4%BB%A3%E7%A0%81%E6%B6%88%E9%99%A4-%E7%BB%86%E5%8C%96">22. &lt;code>dead_code_eliminate.cc&lt;/code> - 死代码消除 细化&lt;/a>&lt;/li>
-&lt;li>&lt;a href="#23-strength_reductioncc---%E5%BC%BA%E5%BA%A6%E6%B6%88%E5%87%8F-%E7%BB%86%E5%8C%96">23. &lt;code>strength_reduction.cc&lt;/code> - 强度消减 细化&lt;/a>&lt;/li>
-&lt;li>&lt;a href="#24-register_allocatecc---%E5%AF%84%E5%AD%98%E5%99%A8%E5%88%86%E9%85%8D-%E7%BB%86%E5%8C%96">24. &lt;code>register_allocate.cc&lt;/code> - 寄存器分配 细化&lt;/a>&lt;/li>
-&lt;li>&lt;a href="#25-vectorizecc---%E5%90%91%E9%87%8F%E5%8C%96%E4%BC%98%E5%8C%96-%E7%BB%86%E5%8C%96">25. &lt;code>vectorize.cc&lt;/code> - 向量化优化 细化&lt;/a>&lt;/li>
-&lt;li>&lt;a href="#26-loop_unrollcc---%E5%BE%AA%E7%8E%AF%E5%B1%95%E5%BC%80%E4%BC%98%E5%8C%96-%E7%BB%86%E5%8C%96">26. &lt;code>loop_unroll.cc&lt;/code> - 循环展开优化 细化&lt;/a>&lt;/li>
-&lt;li>&lt;a href="#27-inline_expandcc---%E5%86%85%E8%81%94%E5%B1%95%E5%BC%80%E4%BC%98%E5%8C%96-%E7%BB%86%E5%8C%96">27. &lt;code>inline_expand.cc&lt;/code> - 内联展开优化 细化&lt;/a>&lt;/li>
-&lt;li>&lt;a href="#28-const_propagationcc---%E5%B8%B8%E9%87%8F%E4%BC%A0%E6%92%AD%E4%BC%98%E5%8C%96-%E7%BB%86%E5%8C%96">28. &lt;code>const_propagation.cc&lt;/code> - 常量传播优化 细化&lt;/a>&lt;/li>
-&lt;li>&lt;a href="#29-alias_analysiscc---%E5%88%AB%E5%90%8D%E5%88%86%E6%9E%90-%E7%BB%86%E5%8C%96">29. &lt;code>alias_analysis.cc&lt;/code> - 别名分析 细化&lt;/a>&lt;/li>
-&lt;li>&lt;a href="#31-mem2regcc---%E5%86%85%E5%AD%98%E5%88%B0%E5%AF%84%E5%AD%98%E5%99%A8%E6%8F%90%E5%8D%87-%E7%BB%86%E5%8C%96">31. &lt;code>mem2reg.cc&lt;/code> - 内存到寄存器提升 细化&lt;/a>&lt;/li>
-&lt;li>&lt;a href="#32-gvncc---%E5%85%A8%E5%B1%80%E5%80%BC%E7%BC%96%E5%8F%B7-%E7%BB%86%E5%8C%96">32. &lt;code>gvn.cc&lt;/code> - 全局值编号 细化&lt;/a>&lt;/li>
-&lt;li>&lt;a href="#33-loop_fusioncc---%E5%BE%AA%E7%8E%AF%E8%9E%8D%E5%90%88%E4%BC%98%E5%8C%96-%E7%BB%86%E5%8C%96">33. &lt;code>loop_fusion.cc&lt;/code> - 循环融合优化 细化&lt;/a>&lt;/li>
-&lt;li>&lt;a href="#34-loop_tilingcc---%E5%BE%AA%E7%8E%AF%E5%88%86%E5%9D%97%E4%BC%98%E5%8C%96-%E7%BB%86%E5%8C%96">34. &lt;code>loop_tiling.cc&lt;/code> - 循环分块优化 细化&lt;/a>&lt;/li>
-&lt;li>&lt;a href="#35-tail_call_optcc---%E5%B0%BE%E8%B0%83%E7%94%A8%E4%BC%98%E5%8C%96-%E7%BB%86%E5%8C%96">35. &lt;code>tail_call_opt.cc&lt;/code> - 尾调用优化 细化&lt;/a>&lt;/li>
-&lt;li>&lt;a href="#36-autovectorizecc---%E8%87%AA%E5%8A%A8%E5%90%91%E9%87%8F%E5%8C%96-%E7%BB%86%E5%8C%96">36. &lt;code>autovectorize.cc&lt;/code> - 自动向量化 细化&lt;/a>&lt;/li>
-&lt;li>&lt;a href="#37-dead_store_elimcc---%E6%AD%BB%E5%AD%98%E5%82%A8%E6%B6%88%E9%99%A4%E4%BC%98%E5%8C%96-%E7%BB%86%E5%8C%96">37. &lt;code>dead_store_elim.cc&lt;/code> - 死存储消除优化 细化&lt;/a>&lt;/li>
-&lt;li>&lt;a href="#38-strength_reductioncc---%E5%BC%BA%E5%BA%A6%E5%89%8A%E5%87%8F%E4%BC%98%E5%8C%96-%E7%BB%86%E5%8C%96">38. &lt;code>strength_reduction.cc&lt;/code> - 强度削减优化 细化&lt;/a>&lt;/li>
-&lt;li>&lt;a href="#39-register_alloccc---%E5%AF%84%E5%AD%98%E5%99%A8%E5%88%86%E9%85%8D%E4%BC%98%E5%8C%96-%E7%BB%86%E5%8C%96">39. &lt;code>register_alloc.cc&lt;/code> - 寄存器分配优化 细化&lt;/a>&lt;/li>
-&lt;li>&lt;a href="#40-inline_expansioncc---%E5%86%85%E8%81%94%E5%B1%95%E5%BC%80%E4%BC%98%E5%8C%96-%E7%BB%86%E5%8C%96">40. &lt;code>inline_expansion.cc&lt;/code> - 内联展开优化 细化&lt;/a>&lt;/li>
-&lt;li>&lt;a href="#41-loop_unswitchcc---%E5%BE%AA%E7%8E%AF%E4%B8%8D%E5%8F%98%E9%87%8F%E5%A4%96%E6%8F%90%E4%BC%98%E5%8C%96-%E7%BB%86%E5%8C%96">41. &lt;code>loop_unswitch.cc&lt;/code> - 循环不变量外提优化 细化&lt;/a>&lt;/li>
-&lt;li>&lt;a href="#42-instruction_combinecc---%E6%8C%87%E4%BB%A4%E7%BB%84%E5%90%88%E4%BC%98%E5%8C%96-%E7%BB%86%E5%8C%96">42. &lt;code>instruction_combine.cc&lt;/code> - 指令组合优化 细化&lt;/a>&lt;/li>
-&lt;li>&lt;a href="#43-const_propagatecc---%E5%B8%B8%E9%87%8F%E4%BC%A0%E6%92%AD%E4%BC%98%E5%8C%96-%E7%BB%86%E5%8C%96">43. &lt;code>const_propagate.cc&lt;/code> - 常量传播优化 细化&lt;/a>&lt;/li>
-&lt;li>&lt;a href="#44-csecc---%E5%85%AC%E5%85%B1%E5%AD%90%E8%A1%A8%E8%BE%BE%E5%BC%8F%E6%B6%88%E9%99%A4-%E7%BB%86%E5%8C%96">44. &lt;code>cse.cc&lt;/code> - 公共子表达式消除 细化&lt;/a>&lt;/li>
-&lt;li>&lt;a href="#45-dcecc---%E6%AD%BB%E4%BB%A3%E7%A0%81%E6%B6%88%E9%99%A4%E4%BC%98%E5%8C%96-%E7%BB%86%E5%8C%96">45. &lt;code>dce.cc&lt;/code> - 死代码消除优化 细化&lt;/a>&lt;/li>
-&lt;li>&lt;a href="#46-licmcc---%E5%BE%AA%E7%8E%AF%E4%B8%8D%E5%8F%98%E4%BB%A3%E7%A0%81%E5%A4%96%E6%8F%90%E4%BC%98%E5%8C%96-%E7%BB%86%E5%8C%96">46. &lt;code>licm.cc&lt;/code> - 循环不变代码外提优化 细化&lt;/a>&lt;/li>
-&lt;li>&lt;a href="#47-loop_fusioncc---%E5%BE%AA%E7%8E%AF%E8%9E%8D%E5%90%88%E4%BC%98%E5%8C%96-%E7%BB%86%E5%8C%96">47. &lt;code>loop_fusion.cc&lt;/code> - 循环融合优化 细化&lt;/a>&lt;/li>
-&lt;li>&lt;a href="#48-loop_peelingcc---%E5%BE%AA%E7%8E%AF%E5%89%A5%E7%A6%BB%E4%BC%98%E5%8C%96-%E7%BB%86%E5%8C%96">48. &lt;code>loop_peeling.cc&lt;/code> - 循环剥离优化 细化&lt;/a>&lt;/li>
-&lt;li>&lt;a href="#49-vectorizationcc---%E8%87%AA%E5%8A%A8%E5%90%91%E9%87%8F%E5%8C%96%E4%BC%98%E5%8C%96-%E7%BB%86%E5%8C%96">49. &lt;code>vectorization.cc&lt;/code> - 自动向量化优化 细化&lt;/a>&lt;/li>
-&lt;li>&lt;a href="#50-loop_tilingcc---%E5%BE%AA%E7%8E%AF%E5%88%86%E5%9D%97%E4%BC%98%E5%8C%96-%E7%BB%86%E5%8C%96">50. &lt;code>loop_tiling.cc&lt;/code> - 循环分块优化 细化&lt;/a>&lt;/li>
-&lt;li>&lt;a href="#51-tail_callcc---%E5%B0%BE%E8%B0%83%E7%94%A8%E4%BC%98%E5%8C%96-%E7%BB%86%E5%8C%96">51. &lt;code>tail_call.cc&lt;/code> - 尾调用优化 细化&lt;/a>&lt;/li>
-&lt;/ul>
-&lt;/li>
-&lt;/ul>
-&lt;/li>
-&lt;/ul>
-&lt;h3 id="1-dead_codecc---死代码消除-细化">1. &lt;code>dead_code.cc&lt;/code> - 死代码消除 细化&lt;/h3>
-&lt;p>&lt;strong>优化目的&lt;/strong>:&lt;/p></description></item></channel></rss>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Oops</title><link>https://KDZZZZZZ.github.io/</link><description>Recent content on Oops</description><generator>Hugo -- 0.152.2</generator><language>en-us</language><lastBuildDate>Tue, 28 Jan 2025 00:00:00 +0800</lastBuildDate><atom:link href="https://KDZZZZZZ.github.io/index.xml" rel="self" type="application/rss+xml"/><item><title>TVM Function objects and registration implementation</title><link>https://KDZZZZZZ.github.io/posts/tvm%E4%BB%A3%E7%A0%81%E5%BA%93%E8%A7%A3%E6%9E%90%E5%87%BD%E6%95%B0%E5%AF%B9%E8%B1%A1%E5%8F%8A%E6%B3%A8%E5%86%8C%E5%AE%9E%E7%8E%B0/</link><pubDate>Tue, 28 Jan 2025 00:00:00 +0800</pubDate><guid>https://KDZZZZZZ.github.io/posts/tvm%E4%BB%A3%E7%A0%81%E5%BA%93%E8%A7%A3%E6%9E%90%E5%87%BD%E6%95%B0%E5%AF%B9%E8%B1%A1%E5%8F%8A%E6%B3%A8%E5%86%8C%E5%AE%9E%E7%8E%B0/</guid><description>&lt;p&gt;首先给出TVM中注册自定义函数和调用自定义函数的方法&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code class="language-cpp" data-lang="cpp"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#60a0b0;font-style:italic"&gt;// 注册函数
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#60a0b0;font-style:italic"&gt;&lt;/span&gt;TVM_REGISTER_GLOBAL(&lt;span style="color:#4070a0"&gt;&amp;#34;add&amp;#34;&lt;/span&gt;).set_body([](TVMArgs args, TVMRetValue&lt;span style="color:#666"&gt;*&lt;/span&gt; ret) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#902000"&gt;int&lt;/span&gt; a &lt;span style="color:#666"&gt;=&lt;/span&gt; args[&lt;span style="color:#40a070"&gt;0&lt;/span&gt;];
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#902000"&gt;int&lt;/span&gt; b &lt;span style="color:#666"&gt;=&lt;/span&gt; args[&lt;span style="color:#40a070"&gt;1&lt;/span&gt;];
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#666"&gt;*&lt;/span&gt;ret &lt;span style="color:#666"&gt;=&lt;/span&gt; a &lt;span style="color:#666"&gt;+&lt;/span&gt; b;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;});
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#60a0b0;font-style:italic"&gt;// 调用函数
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#60a0b0;font-style:italic"&gt;&lt;/span&gt;PackedFunc add &lt;span style="color:#666"&gt;=&lt;/span&gt; runtime&lt;span style="color:#666"&gt;::&lt;/span&gt;Registry&lt;span style="color:#666"&gt;::&lt;/span&gt;Get(&lt;span style="color:#4070a0"&gt;&amp;#34;add&amp;#34;&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#902000"&gt;int&lt;/span&gt; result &lt;span style="color:#666"&gt;=&lt;/span&gt; add(&lt;span style="color:#40a070"&gt;3&lt;/span&gt;, &lt;span style="color:#40a070"&gt;5&lt;/span&gt;); &lt;span style="color:#60a0b0;font-style:italic"&gt;// 返回 8
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;TVM实现注册Lambda函数的&lt;code&gt;set_body&lt;/code&gt;函数是一个指向&lt;code&gt;PackedFunc&lt;/code&gt;类型的指针.&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;TVM_REGISTER_GLOBAL&lt;/code&gt;的实现如下：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code class="language-cpp" data-lang="cpp"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#007020"&gt;#define REGISTER_GLOBAL(name, func) \
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#007020"&gt; tvm::runtime::FRegistry::Register(name, tvm::runtime::PackedFunc(func))
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;使用全局哈希表&lt;code&gt;FRegistry&lt;/code&gt;注册函数。通过宏&lt;code&gt;REGISTER_GLOBAL(&amp;quot;func_name&amp;quot;, MyFunction)&lt;/code&gt;将函数与名称绑定，后续通过&lt;code&gt;GetPackedFunc(&amp;quot;func_name&amp;quot;)&lt;/code&gt;查找.&lt;/p&gt;
+&lt;p&gt;使用&lt;code&gt;REGISTER_GLOBAL&lt;/code&gt;宏将函数与名称绑定。这个宏会调用&lt;code&gt;FRegistry::Register&lt;/code&gt;方法，将函数存储到全局哈希表中。&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;PackedFunc&lt;/code&gt;类型继承自&lt;code&gt;ObjectRef&lt;/code&gt;基类，实现了运算符重载，又用&lt;code&gt;make_object&lt;/code&gt;函数创建一个&lt;code&gt;PackedFuncSubObj&lt;/code&gt;类型对象，这个对象可以储存可调用对象.&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;PackedFuncSubObj&lt;/code&gt;继承自&lt;code&gt;PackedFuncObj&lt;/code&gt;, 这是&lt;code&gt;Object&lt;/code&gt;的子类，&lt;code&gt;Object&lt;/code&gt;实现了引用计数和类型检查，&lt;code&gt;PackedFunObj&lt;/code&gt;对函数指针、参数和返回值指针进行了打包。&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;PackedFuncSubObj&lt;/code&gt;类型用&lt;code&gt;std::remove_reference&lt;/code&gt;和&lt;code&gt;std::remove_cv&lt;/code&gt;进行了类型擦除，对&lt;code&gt;const&lt;/code&gt;、&lt;code&gt;volatile&lt;/code&gt;和引用进行去壳，移除我们不需要的特性.&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;PackedFuncSubObj&lt;/code&gt;中定义了&lt;code&gt;Extractor&lt;/code&gt;提取器结构，提取器内部的&lt;code&gt;Call&lt;/code&gt;函数是一个指针，用来调用可调用对象。&lt;/p&gt;
+&lt;p&gt;接下来解释一下参数和返回值的数据结构。&lt;/p&gt;
+&lt;p&gt;分别是&lt;code&gt;TVMArgs&lt;/code&gt;和&lt;code&gt;TVMRetValue&lt;/code&gt;,都使用了联合体&lt;code&gt;TVMValue&lt;/code&gt;对数据进行打包并进行了运算符重载和用于数据传递的基本方法。&lt;/p&gt;
+&lt;p&gt;以上所有的实现基本都在&lt;code&gt;include/tvm/runtime/packed_func.h&lt;/code&gt;、&lt;code&gt;include/tvm/runtime/registry.h&lt;/code&gt;和&lt;code&gt;src/runtime/registry.cc&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;Python&lt;/code&gt;封装了&lt;code&gt;ctypes&lt;/code&gt;库，能够通过&lt;code&gt;name&lt;/code&gt;查找全局注册的C++函数并获得函数句柄，调用后得到传回的返回值。
+其中对数据类型的包装也是TVM实现任意语言互相调用的关键.&lt;/p&gt;</description></item><item><title>TVM代码库解析：Relay层结构与优化Pass</title><link>https://KDZZZZZZ.github.io/posts/tvm%E4%BB%A3%E7%A0%81%E5%BA%93%E8%A7%A3%E6%9E%90relay%E5%B1%82%E7%BB%93%E6%9E%84%E4%B8%8E%E4%BC%98%E5%8C%96pass/</link><pubDate>Tue, 28 Jan 2025 00:00:00 +0800</pubDate><guid>https://KDZZZZZZ.github.io/posts/tvm%E4%BB%A3%E7%A0%81%E5%BA%93%E8%A7%A3%E6%9E%90relay%E5%B1%82%E7%BB%93%E6%9E%84%E4%B8%8E%E4%BC%98%E5%8C%96pass/</guid><description>&lt;p&gt;relay层主要由数据结构类(如Constant)和节点类(如ConstantNode)组成。
+下面梳理一下他们的继承链。&lt;/p&gt;
+&lt;p&gt;ObjectRef → BaseExpr → RelayExpr → Constant&lt;/p&gt;
+&lt;p&gt;Object → BaseExprNode → RelayExprNode → ConstantNode&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;源代码库中使用了&lt;code&gt;using ExprNode = tvm::RelayExprNode;&lt;/code&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;这里先赘述一下上面每个类的的功能：&lt;/p&gt;
+&lt;h4 id="1"&gt;&lt;strong&gt;(1) &lt;code&gt;Object&lt;/code&gt; (include/tvm/runtime/object.h)&lt;/strong&gt;&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;功能&lt;/strong&gt;：
+&lt;ul&gt;
+&lt;li&gt;TVM &lt;strong&gt;所有对象的基类&lt;/strong&gt;，提供 &lt;strong&gt;引用计数&lt;/strong&gt; 和 &lt;strong&gt;类型系统&lt;/strong&gt; 支持&lt;/li&gt;
+&lt;li&gt;实现 &lt;code&gt;RefCount&lt;/code&gt; 机制（通过 &lt;code&gt;use_count&lt;/code&gt; 成员）&lt;/li&gt;
+&lt;li&gt;提供 &lt;code&gt;type_index&lt;/code&gt; 用于运行时类型识别（RTTI）&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;关键方法&lt;/strong&gt;：
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code class="language-cpp" data-lang="cpp"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#007020;font-weight:bold"&gt;virtual&lt;/span&gt; &lt;span style="color:#902000"&gt;uint32_t&lt;/span&gt; &lt;span style="color:#06287e"&gt;type_index&lt;/span&gt;() &lt;span style="color:#007020;font-weight:bold"&gt;const&lt;/span&gt;; &lt;span style="color:#60a0b0;font-style:italic"&gt;// 类型标识
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#60a0b0;font-style:italic"&gt;&lt;/span&gt;&lt;span style="color:#902000"&gt;void&lt;/span&gt; &lt;span style="color:#06287e"&gt;IncRef&lt;/span&gt;(); &lt;span style="color:#60a0b0;font-style:italic"&gt;// 增加引用计数
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#60a0b0;font-style:italic"&gt;&lt;/span&gt;&lt;span style="color:#902000"&gt;void&lt;/span&gt; &lt;span style="color:#06287e"&gt;DecRef&lt;/span&gt;(); &lt;span style="color:#60a0b0;font-style:italic"&gt;// 减少引用计数
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id="2"&gt;&lt;strong&gt;(2) &lt;code&gt;ObjectRef&lt;/code&gt; (include/tvm/runtime/object.h)&lt;/strong&gt;&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;功能&lt;/strong&gt;：
+&lt;ul&gt;
+&lt;li&gt;所有 &lt;strong&gt;对象引用&lt;/strong&gt; 的基类模板（如 &lt;code&gt;Constant&lt;/code&gt; 本质是 &lt;code&gt;ObjectRef&amp;lt;ConstantNode&amp;gt;&lt;/code&gt;）&lt;/li&gt;
+&lt;li&gt;通过智能指针 (&lt;code&gt;ObjectPtr&lt;/code&gt;) &lt;strong&gt;管理 Object 子类的生命周期&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;提供 &lt;strong&gt;类型安全转换接口&lt;/strong&gt;（如 &lt;code&gt;as&amp;lt;T&amp;gt;()&lt;/code&gt;）&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;关键行为&lt;/strong&gt;：
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code class="language-cpp" data-lang="cpp"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#007020;font-weight:bold"&gt;template&lt;/span&gt;&lt;span style="color:#666"&gt;&amp;lt;&lt;/span&gt;&lt;span style="color:#007020;font-weight:bold"&gt;typename&lt;/span&gt; T&lt;span style="color:#666"&gt;&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#007020;font-weight:bold"&gt;const&lt;/span&gt; T&lt;span style="color:#666"&gt;*&lt;/span&gt; as() &lt;span style="color:#007020;font-weight:bold"&gt;const&lt;/span&gt;; &lt;span style="color:#60a0b0;font-style:italic"&gt;// 安全类型转换
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#60a0b0;font-style:italic"&gt;&lt;/span&gt;&lt;span style="color:#007020;font-weight:bold"&gt;operator&lt;/span&gt; &lt;span style="color:#06287e"&gt;bool&lt;/span&gt;() &lt;span style="color:#007020;font-weight:bold"&gt;const&lt;/span&gt;; &lt;span style="color:#60a0b0;font-style:italic"&gt;// 检查是否非空
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id="3"&gt;&lt;strong&gt;(3) &lt;code&gt;BaseExprNode&lt;/code&gt; (include/tvm/ir/expr.h)&lt;/strong&gt;&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;继承关系&lt;/strong&gt;：&lt;code&gt;Object&lt;/code&gt; → &lt;code&gt;BaseExprNode&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;功能&lt;/strong&gt;：
+&lt;ul&gt;
+&lt;li&gt;所有 &lt;strong&gt;表达式节点&lt;/strong&gt; 的抽象基类&lt;/li&gt;
+&lt;li&gt;定义表达式通用接口：
+&lt;ul&gt;
+&lt;li&gt;数据类型 (&lt;code&gt;dtype&lt;/code&gt;)&lt;/li&gt;
+&lt;li&gt;源码位置 (&lt;code&gt;span&lt;/code&gt;)&lt;/li&gt;
+&lt;li&gt;虚函数 &lt;code&gt;SEqualReduce&lt;/code&gt;（用于结构相等性比较）&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;关键成员&lt;/strong&gt;：
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code class="language-cpp" data-lang="cpp"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;runtime&lt;span style="color:#666"&gt;::&lt;/span&gt;DataType dtype; &lt;span style="color:#60a0b0;font-style:italic"&gt;// 数据类型（如 float32）
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#60a0b0;font-style:italic"&gt;&lt;/span&gt;Span span; &lt;span style="color:#60a0b0;font-style:italic"&gt;// 源码位置信息（用于调试）
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id="4"&gt;&lt;strong&gt;(4) &lt;code&gt;BaseExpr&lt;/code&gt; (include/tvm/ir/expr.h)&lt;/strong&gt;&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;继承关系&lt;/strong&gt;：&lt;code&gt;ObjectRef&lt;/code&gt; → &lt;code&gt;BaseExpr&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;功能&lt;/strong&gt;：
+&lt;ul&gt;
+&lt;li&gt;所有 &lt;strong&gt;表达式引用&lt;/strong&gt; 的基类（如 &lt;code&gt;Constant&lt;/code&gt;、&lt;code&gt;Var&lt;/code&gt; 等）&lt;/li&gt;
+&lt;li&gt;提供对 &lt;code&gt;BaseExprNode&lt;/code&gt; 的通用访问接口&lt;/li&gt;
+&lt;li&gt;重载运算符（如 &lt;code&gt;operator==&lt;/code&gt;）实现表达式比较&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id="5"&gt;&lt;strong&gt;(5) &lt;code&gt;RelayExprNode&lt;/code&gt; (include/tvm/ir/expr.h)&lt;/strong&gt;&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;继承关系&lt;/strong&gt;：&lt;code&gt;BaseExprNode&lt;/code&gt; → &lt;code&gt;RelayExprNode&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;功能&lt;/strong&gt;：
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Relay 表达式体系的节点基类&lt;/strong&gt;，定义所有高层计算图节点的通用行为&lt;/li&gt;
+&lt;li&gt;存储 Relay 特有的元数据：
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;类型信息&lt;/strong&gt; (&lt;code&gt;checked_type_&lt;/code&gt;): 类型推断后的结果（如 &lt;code&gt;TensorType(shape=[1,3], dtype=float32)&lt;/code&gt;）&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;源码位置&lt;/strong&gt; (&lt;code&gt;span&lt;/code&gt;): 用于调试和错误定位&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;实现 &lt;strong&gt;结构等价性检查&lt;/strong&gt; (&lt;code&gt;SEqualReduce&lt;/code&gt;) 和 &lt;strong&gt;哈希生成&lt;/strong&gt; (&lt;code&gt;SHashReduce&lt;/code&gt;) 的虚函数&lt;/li&gt;
+&lt;li&gt;支持 &lt;strong&gt;递归遍历子节点&lt;/strong&gt; 的接口（用于优化 Pass 或分析）&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;关键成员&lt;/strong&gt;：
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code class="language-cpp" data-lang="cpp"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#007020;font-weight:bold"&gt;mutable&lt;/span&gt; Type checked_type_; &lt;span style="color:#60a0b0;font-style:italic"&gt;// 类型推断结果（可缓存）
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#60a0b0;font-style:italic"&gt;&lt;/span&gt;Span span; &lt;span style="color:#60a0b0;font-style:italic"&gt;// 源码位置信息
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;典型子类&lt;/strong&gt;：
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;ConstantNode&lt;/code&gt;（常量）&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;VarNode&lt;/code&gt;（变量）&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;CallNode&lt;/code&gt;（函数调用）&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;FunctionNode&lt;/code&gt;（函数定义）&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id="6"&gt;&lt;strong&gt;(6) &lt;code&gt;RelayExpr&lt;/code&gt; (include/tvm/ir/expr.h)&lt;/strong&gt;&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;继承关系&lt;/strong&gt;：&lt;code&gt;BaseExpr&lt;/code&gt; → &lt;code&gt;RelayExpr&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;功能&lt;/strong&gt;：
+&lt;ul&gt;
+&lt;li&gt;通过&lt;code&gt;TVM_DEFINE_OBJECT_REF_METHODS&lt;/code&gt;宏定义了对象引用管理、类型转换和节点访问的功能&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id="7"&gt;&lt;strong&gt;(7) &lt;code&gt;ConstantNode&lt;/code&gt; (include/tvm/relay/expr.h)&lt;/strong&gt;&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;继承关系&lt;/strong&gt;：&lt;code&gt;RelayExprNode&lt;/code&gt; → &lt;code&gt;ConstantNode&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;功能&lt;/strong&gt;：
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;存储常量数据的节点&lt;/strong&gt;（具体实现）&lt;/li&gt;
+&lt;li&gt;持有 &lt;code&gt;runtime::NDArray&lt;/code&gt; 表示常量值&lt;/li&gt;
+&lt;li&gt;实现 &lt;code&gt;SEqualReduce&lt;/code&gt; 比较常量值是否相等&lt;/li&gt;
+&lt;li&gt;实现 &lt;code&gt;SHashReduce&lt;/code&gt; 生成哈希值&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;关键成员&lt;/strong&gt;：
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code class="language-cpp" data-lang="cpp"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;runtime&lt;span style="color:#666"&gt;::&lt;/span&gt;NDArray data; &lt;span style="color:#60a0b0;font-style:italic"&gt;// 常量数据（可以是标量或张量）
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id="8"&gt;&lt;strong&gt;(8) &lt;code&gt;Constant&lt;/code&gt; (include/tvm/relay/expr.h)&lt;/strong&gt;&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;继承关系&lt;/strong&gt;：&lt;code&gt;RelayExpr&lt;/code&gt; → &lt;code&gt;Constant&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;功能&lt;/strong&gt;：
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;用户直接使用的常量包装类&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;构造函数封装 &lt;code&gt;ConstantNode&lt;/code&gt; 的创建&lt;/li&gt;
+&lt;li&gt;提供对 &lt;code&gt;data&lt;/code&gt; 的安全访问方法&lt;/li&gt;
+&lt;li&gt;示例用法：
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code class="language-cpp" data-lang="cpp"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;NDArray arr &lt;span style="color:#666"&gt;=&lt;/span&gt; ...;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;Constant c &lt;span style="color:#666"&gt;=&lt;/span&gt; Constant(arr); &lt;span style="color:#60a0b0;font-style:italic"&gt;// 创建常量
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#60a0b0;font-style:italic"&gt;&lt;/span&gt;Expr expr &lt;span style="color:#666"&gt;=&lt;/span&gt; c; &lt;span style="color:#60a0b0;font-style:italic"&gt;// 可隐式转换为基类
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;有了对基类的功能认识，我们只需要继续了解类似&lt;code&gt;Constant&lt;/code&gt;和&lt;code&gt;ConstantNode&lt;/code&gt;类的其他主要类实现。&lt;/p&gt;</description></item><item><title>Welcome to My Blog</title><link>https://KDZZZZZZ.github.io/posts/welcome-to-my-blog/</link><pubDate>Sun, 29 Dec 2024 00:00:00 +0000</pubDate><guid>https://KDZZZZZZ.github.io/posts/welcome-to-my-blog/</guid><description>&lt;h2 id="welcome"&gt;Welcome!&lt;/h2&gt;
+&lt;p&gt;Hello everyone! This is my new blog built with Hugo. I&amp;rsquo;m excited to share my thoughts and experiences here.&lt;/p&gt;
+&lt;h3 id="what-to-expect"&gt;What to Expect&lt;/h3&gt;
+&lt;p&gt;In this blog, I plan to write about:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Technology and Programming&lt;/li&gt;
+&lt;li&gt;Learning experiences&lt;/li&gt;
+&lt;li&gt;Personal growth&lt;/li&gt;
+&lt;li&gt;Interesting projects&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3 id="why-i-started-blogging"&gt;Why I Started Blogging&lt;/h3&gt;
+&lt;p&gt;I believe writing is a great way to:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Organize thoughts&lt;/li&gt;
+&lt;li&gt;Share knowledge&lt;/li&gt;
+&lt;li&gt;Document learning journey&lt;/li&gt;
+&lt;li&gt;Connect with like-minded people&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Stay tuned for more posts!&lt;/p&gt;</description></item><item><title>我的第一篇博客</title><link>https://KDZZZZZZ.github.io/posts/my-first-post/</link><pubDate>Sat, 28 Dec 2024 20:41:44 +0800</pubDate><guid>https://KDZZZZZZ.github.io/posts/my-first-post/</guid><description>&lt;h1 id="欢迎来到我的博客"&gt;欢迎来到我的博客！&lt;/h1&gt;
+&lt;p&gt;这是我用 Hugo 搭建的新博客的第一篇文章。我很高兴能在这里开始分享我的想法和经历。&lt;/p&gt;
+&lt;h2 id="期待"&gt;期待&lt;/h2&gt;
+&lt;p&gt;我会在这里写一些我感兴趣的话题。敬请期待更多内容！&lt;/p&gt;</description></item><item><title>About Me</title><link>https://KDZZZZZZ.github.io/about/</link><pubDate>Sat, 28 Dec 2024 00:00:00 +0000</pubDate><guid>https://KDZZZZZZ.github.io/about/</guid><description>&lt;p&gt;Oops，本科就读于杭州电子科技大学CS系28级，渴望灵感之风的吹拂也希望夯实工程能力。&lt;/p&gt;
+&lt;h2 id="虚度的时间"&gt;虚度的时间&lt;/h2&gt;
+&lt;p&gt;探索了CS的必修四件套，go后端入门，NLP算法基础，以及一些电子元件的理论知识。还有一些比赛、外包项目。&lt;/p&gt;
+&lt;h2 id="痛定思痛"&gt;痛定思痛&lt;/h2&gt;
+&lt;p&gt;接下来我将继续MLSys方向，同时分享一些ML和DL算法和论文复现。或许还有一些微调RAG提示词工程的笔记。靡不有初，鲜克有终。&lt;/p&gt;
+&lt;h2 id="关于博客"&gt;关于博客&lt;/h2&gt;
+&lt;p&gt;理论会尽力严谨，如果有教程会尽力细致，如果有随笔会尽量随便。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;GitHub: &lt;a href="https://github.com/KDZZZZZZ"&gt;KDZZZZZZ&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Email: &lt;a href="mailto:2112335382@qq.com"&gt;QQ邮箱&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;bilibili: &lt;a href="https://space.bilibili.com/1938413314?spm_id_from=333.1007.0.0"&gt;在B站考研&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;会赢的，对吧&lt;/p&gt;</description></item><item><title>Hello World</title><link>https://KDZZZZZZ.github.io/posts/hello-world/</link><pubDate>Sat, 28 Dec 2024 00:00:00 +0000</pubDate><guid>https://KDZZZZZZ.github.io/posts/hello-world/</guid><description>&lt;h2 id="hello-world"&gt;Hello, World!&lt;/h2&gt;
+&lt;p&gt;This is my first blog post. Here, I&amp;rsquo;ll share some interesting tech insights and life experiences.&lt;/p&gt;
+&lt;h3 id="why-start-a-blog"&gt;Why Start a Blog?&lt;/h3&gt;
+&lt;p&gt;Blogging helps me:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Document my learning journey&lt;/li&gt;
+&lt;li&gt;Share technical insights&lt;/li&gt;
+&lt;li&gt;Connect with like-minded people&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3 id="future-plans"&gt;Future Plans&lt;/h3&gt;
+&lt;p&gt;I plan to write about:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Programming techniques&lt;/li&gt;
+&lt;li&gt;Learning experiences&lt;/li&gt;
+&lt;li&gt;Life reflections&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Stay tuned!&lt;/p&gt;</description></item><item><title>Contact</title><link>https://KDZZZZZZ.github.io/contact/</link><pubDate>Mon, 01 Jan 2024 00:00:00 +0000</pubDate><guid>https://KDZZZZZZ.github.io/contact/</guid><description>Get in touch with me.</description></item><item><title/><link>https://KDZZZZZZ.github.io/posts/optimizations/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://KDZZZZZZ.github.io/posts/optimizations/</guid><description>&lt;h1 id="tvm-relay-ir-optimization-methods"&gt;TVM Relay IR Optimization Methods&lt;/h1&gt;
+&lt;h2 id="优化方法概述"&gt;优化方法概述&lt;/h2&gt;
+&lt;p&gt;本文档详细介绍了TVM Relay IR中实现的各种优化方法。每个优化方法都包含其数学原理、算法实现和实际应用示例。这些优化方法共同构成了TVM的优化体系,旨在提高深度学习模型的执行效率。&lt;/p&gt;
+&lt;h2 id="table-of-contents"&gt;Table of Contents&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="#tvm-relay-ir-optimization-methods"&gt;TVM Relay IR Optimization Methods&lt;/a&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="#%E4%BC%98%E5%8C%96%E6%96%B9%E6%B3%95%E6%A6%82%E8%BF%B0"&gt;优化方法概述&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#table-of-contents"&gt;Table of Contents&lt;/a&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="#1-dead_codecc---%E6%AD%BB%E4%BB%A3%E7%A0%81%E6%B6%88%E9%99%A4-%E7%BB%86%E5%8C%96"&gt;1. &lt;code&gt;dead_code.cc&lt;/code&gt; - 死代码消除 细化&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#2-eliminate_common_subexprcc---%E5%85%AC%E5%85%B1%E5%AD%90%E8%A1%A8%E8%BE%BE%E5%BC%8F%E6%B6%88%E9%99%A4-%E7%BB%86%E5%8C%96"&gt;2. &lt;code&gt;eliminate_common_subexpr.cc&lt;/code&gt; - 公共子表达式消除 细化&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#3-fold_constantcc---%E5%B8%B8%E9%87%8F%E6%8A%98%E5%8F%A0-%E7%BB%86%E5%8C%96"&gt;3. &lt;code&gt;fold_constant.cc&lt;/code&gt; - 常量折叠 细化&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#4-fuse_opscc---%E7%AE%97%E5%AD%90%E8%9E%8D%E5%90%88%E4%BC%98%E5%8C%96-%E7%BB%86%E5%8C%96"&gt;4. &lt;code&gt;fuse_ops.cc&lt;/code&gt; - 算子融合优化 细化&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#5-transform_layouth-convert_layoutcc---%E5%B8%83%E5%B1%80%E8%BD%AC%E6%8D%A2-%E7%BB%86%E5%8C%96"&gt;5. &lt;code&gt;transform_layout.h&lt;/code&gt;, &lt;code&gt;convert_layout.cc&lt;/code&gt; - 布局转换 细化&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#6-type_infercc---%E7%B1%BB%E5%9E%8B%E6%8E%A8%E6%96%AD-%E7%BB%86%E5%8C%96"&gt;6. &lt;code&gt;type_infer.cc&lt;/code&gt; - 类型推断 细化&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#7-to_a_normal_formcc---a-%E8%8C%83%E5%BC%8F%E8%BD%AC%E6%8D%A2-%E7%BB%86%E5%8C%96"&gt;7. &lt;code&gt;to_a_normal_form.cc&lt;/code&gt; - A-范式转换 细化&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#8-to_graph_normal_formcc---%E5%9B%BE%E8%8C%83%E5%BC%8F%E8%BD%AC%E6%8D%A2-%E7%BB%86%E5%8C%96"&gt;8. &lt;code&gt;to_graph_normal_form.cc&lt;/code&gt; - 图范式转换 细化&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#9-partial_evalcc---%E9%83%A8%E5%88%86%E6%B1%82%E5%80%BC-%E7%BB%86%E5%8C%96"&gt;9. &lt;code&gt;partial_eval.cc&lt;/code&gt; - 部分求值 细化&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#10-loop_partitioncc---%E5%BE%AA%E7%8E%AF%E5%88%86%E5%9D%97%E4%BC%98%E5%8C%96-%E7%BB%86%E5%8C%96"&gt;10. &lt;code&gt;loop_partition.cc&lt;/code&gt; - 循环分块优化 细化&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#11-loop_unrollcc---%E5%BE%AA%E7%8E%AF%E5%B1%95%E5%BC%80-%E7%BB%86%E5%8C%96"&gt;11. &lt;code&gt;loop_unroll.cc&lt;/code&gt; - 循环展开 细化&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#12-loop_vectorizecc---%E5%BE%AA%E7%8E%AF%E5%90%91%E9%87%8F%E5%8C%96-%E7%BB%86%E5%8C%96"&gt;12. &lt;code&gt;loop_vectorize.cc&lt;/code&gt; - 循环向量化 细化&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#13-memory_promotioncc---%E5%86%85%E5%AD%98%E6%8F%90%E5%8D%87%E4%BC%98%E5%8C%96-%E7%BB%86%E5%8C%96"&gt;13. &lt;code&gt;memory_promotion.cc&lt;/code&gt; - 内存提升优化 细化&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#14-simplify_exprcc---%E8%A1%A8%E8%BE%BE%E5%BC%8F%E7%AE%80%E5%8C%96-%E7%BB%86%E5%8C%96"&gt;14. &lt;code&gt;simplify_expr.cc&lt;/code&gt; - 表达式简化 细化&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#15-storage_rewritecc---%E5%AD%98%E5%82%A8%E9%87%8D%E5%86%99%E4%BC%98%E5%8C%96-%E7%BB%86%E5%8C%96"&gt;15. &lt;code&gt;storage_rewrite.cc&lt;/code&gt; - 存储重写优化 细化&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#16-parallelizecc---%E5%B9%B6%E8%A1%8C%E5%8C%96%E4%BC%98%E5%8C%96-%E7%BB%86%E5%8C%96"&gt;16. &lt;code&gt;parallelize.cc&lt;/code&gt; - 并行化优化 细化&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#17-memory_alloccc---%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E4%BC%98%E5%8C%96-%E7%BB%86%E5%8C%96"&gt;17. &lt;code&gt;memory_alloc.cc&lt;/code&gt; - 内存分配优化 细化&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#18-dataflow_analysiscc---%E6%95%B0%E6%8D%AE%E6%B5%81%E5%88%86%E6%9E%90-%E7%BB%86%E5%8C%96"&gt;18. &lt;code&gt;dataflow_analysis.cc&lt;/code&gt; - 数据流分析 细化&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#19-loop_invariantcc---%E5%BE%AA%E7%8E%AF%E4%B8%8D%E5%8F%98%E5%BC%8F%E5%A4%96%E6%8F%90-%E7%BB%86%E5%8C%96"&gt;19. &lt;code&gt;loop_invariant.cc&lt;/code&gt; - 循环不变式外提 细化&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#20-bound_check_eliminatecc---%E8%BE%B9%E7%95%8C%E6%A3%80%E6%9F%A5%E6%B6%88%E9%99%A4-%E7%BB%86%E5%8C%96"&gt;20. &lt;code&gt;bound_check_eliminate.cc&lt;/code&gt; - 边界检查消除 细化&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#21-common_subexp_eliminatecc---%E5%85%AC%E5%85%B1%E5%AD%90%E8%A1%A8%E8%BE%BE%E5%BC%8F%E6%B6%88%E9%99%A4-%E7%BB%86%E5%8C%96"&gt;21. &lt;code&gt;common_subexp_eliminate.cc&lt;/code&gt; - 公共子表达式消除 细化&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#22-dead_code_eliminatecc---%E6%AD%BB%E4%BB%A3%E7%A0%81%E6%B6%88%E9%99%A4-%E7%BB%86%E5%8C%96"&gt;22. &lt;code&gt;dead_code_eliminate.cc&lt;/code&gt; - 死代码消除 细化&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#23-strength_reductioncc---%E5%BC%BA%E5%BA%A6%E6%B6%88%E5%87%8F-%E7%BB%86%E5%8C%96"&gt;23. &lt;code&gt;strength_reduction.cc&lt;/code&gt; - 强度消减 细化&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#24-register_allocatecc---%E5%AF%84%E5%AD%98%E5%99%A8%E5%88%86%E9%85%8D-%E7%BB%86%E5%8C%96"&gt;24. &lt;code&gt;register_allocate.cc&lt;/code&gt; - 寄存器分配 细化&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#25-vectorizecc---%E5%90%91%E9%87%8F%E5%8C%96%E4%BC%98%E5%8C%96-%E7%BB%86%E5%8C%96"&gt;25. &lt;code&gt;vectorize.cc&lt;/code&gt; - 向量化优化 细化&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#26-loop_unrollcc---%E5%BE%AA%E7%8E%AF%E5%B1%95%E5%BC%80%E4%BC%98%E5%8C%96-%E7%BB%86%E5%8C%96"&gt;26. &lt;code&gt;loop_unroll.cc&lt;/code&gt; - 循环展开优化 细化&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#27-inline_expandcc---%E5%86%85%E8%81%94%E5%B1%95%E5%BC%80%E4%BC%98%E5%8C%96-%E7%BB%86%E5%8C%96"&gt;27. &lt;code&gt;inline_expand.cc&lt;/code&gt; - 内联展开优化 细化&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#28-const_propagationcc---%E5%B8%B8%E9%87%8F%E4%BC%A0%E6%92%AD%E4%BC%98%E5%8C%96-%E7%BB%86%E5%8C%96"&gt;28. &lt;code&gt;const_propagation.cc&lt;/code&gt; - 常量传播优化 细化&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#29-alias_analysiscc---%E5%88%AB%E5%90%8D%E5%88%86%E6%9E%90-%E7%BB%86%E5%8C%96"&gt;29. &lt;code&gt;alias_analysis.cc&lt;/code&gt; - 别名分析 细化&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#31-mem2regcc---%E5%86%85%E5%AD%98%E5%88%B0%E5%AF%84%E5%AD%98%E5%99%A8%E6%8F%90%E5%8D%87-%E7%BB%86%E5%8C%96"&gt;31. &lt;code&gt;mem2reg.cc&lt;/code&gt; - 内存到寄存器提升 细化&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#32-gvncc---%E5%85%A8%E5%B1%80%E5%80%BC%E7%BC%96%E5%8F%B7-%E7%BB%86%E5%8C%96"&gt;32. &lt;code&gt;gvn.cc&lt;/code&gt; - 全局值编号 细化&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#33-loop_fusioncc---%E5%BE%AA%E7%8E%AF%E8%9E%8D%E5%90%88%E4%BC%98%E5%8C%96-%E7%BB%86%E5%8C%96"&gt;33. &lt;code&gt;loop_fusion.cc&lt;/code&gt; - 循环融合优化 细化&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#34-loop_tilingcc---%E5%BE%AA%E7%8E%AF%E5%88%86%E5%9D%97%E4%BC%98%E5%8C%96-%E7%BB%86%E5%8C%96"&gt;34. &lt;code&gt;loop_tiling.cc&lt;/code&gt; - 循环分块优化 细化&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#35-tail_call_optcc---%E5%B0%BE%E8%B0%83%E7%94%A8%E4%BC%98%E5%8C%96-%E7%BB%86%E5%8C%96"&gt;35. &lt;code&gt;tail_call_opt.cc&lt;/code&gt; - 尾调用优化 细化&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#36-autovectorizecc---%E8%87%AA%E5%8A%A8%E5%90%91%E9%87%8F%E5%8C%96-%E7%BB%86%E5%8C%96"&gt;36. &lt;code&gt;autovectorize.cc&lt;/code&gt; - 自动向量化 细化&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#37-dead_store_elimcc---%E6%AD%BB%E5%AD%98%E5%82%A8%E6%B6%88%E9%99%A4%E4%BC%98%E5%8C%96-%E7%BB%86%E5%8C%96"&gt;37. &lt;code&gt;dead_store_elim.cc&lt;/code&gt; - 死存储消除优化 细化&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#38-strength_reductioncc---%E5%BC%BA%E5%BA%A6%E5%89%8A%E5%87%8F%E4%BC%98%E5%8C%96-%E7%BB%86%E5%8C%96"&gt;38. &lt;code&gt;strength_reduction.cc&lt;/code&gt; - 强度削减优化 细化&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#39-register_alloccc---%E5%AF%84%E5%AD%98%E5%99%A8%E5%88%86%E9%85%8D%E4%BC%98%E5%8C%96-%E7%BB%86%E5%8C%96"&gt;39. &lt;code&gt;register_alloc.cc&lt;/code&gt; - 寄存器分配优化 细化&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#40-inline_expansioncc---%E5%86%85%E8%81%94%E5%B1%95%E5%BC%80%E4%BC%98%E5%8C%96-%E7%BB%86%E5%8C%96"&gt;40. &lt;code&gt;inline_expansion.cc&lt;/code&gt; - 内联展开优化 细化&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#41-loop_unswitchcc---%E5%BE%AA%E7%8E%AF%E4%B8%8D%E5%8F%98%E9%87%8F%E5%A4%96%E6%8F%90%E4%BC%98%E5%8C%96-%E7%BB%86%E5%8C%96"&gt;41. &lt;code&gt;loop_unswitch.cc&lt;/code&gt; - 循环不变量外提优化 细化&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#42-instruction_combinecc---%E6%8C%87%E4%BB%A4%E7%BB%84%E5%90%88%E4%BC%98%E5%8C%96-%E7%BB%86%E5%8C%96"&gt;42. &lt;code&gt;instruction_combine.cc&lt;/code&gt; - 指令组合优化 细化&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#43-const_propagatecc---%E5%B8%B8%E9%87%8F%E4%BC%A0%E6%92%AD%E4%BC%98%E5%8C%96-%E7%BB%86%E5%8C%96"&gt;43. &lt;code&gt;const_propagate.cc&lt;/code&gt; - 常量传播优化 细化&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#44-csecc---%E5%85%AC%E5%85%B1%E5%AD%90%E8%A1%A8%E8%BE%BE%E5%BC%8F%E6%B6%88%E9%99%A4-%E7%BB%86%E5%8C%96"&gt;44. &lt;code&gt;cse.cc&lt;/code&gt; - 公共子表达式消除 细化&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#45-dcecc---%E6%AD%BB%E4%BB%A3%E7%A0%81%E6%B6%88%E9%99%A4%E4%BC%98%E5%8C%96-%E7%BB%86%E5%8C%96"&gt;45. &lt;code&gt;dce.cc&lt;/code&gt; - 死代码消除优化 细化&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#46-licmcc---%E5%BE%AA%E7%8E%AF%E4%B8%8D%E5%8F%98%E4%BB%A3%E7%A0%81%E5%A4%96%E6%8F%90%E4%BC%98%E5%8C%96-%E7%BB%86%E5%8C%96"&gt;46. &lt;code&gt;licm.cc&lt;/code&gt; - 循环不变代码外提优化 细化&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#47-loop_fusioncc---%E5%BE%AA%E7%8E%AF%E8%9E%8D%E5%90%88%E4%BC%98%E5%8C%96-%E7%BB%86%E5%8C%96"&gt;47. &lt;code&gt;loop_fusion.cc&lt;/code&gt; - 循环融合优化 细化&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#48-loop_peelingcc---%E5%BE%AA%E7%8E%AF%E5%89%A5%E7%A6%BB%E4%BC%98%E5%8C%96-%E7%BB%86%E5%8C%96"&gt;48. &lt;code&gt;loop_peeling.cc&lt;/code&gt; - 循环剥离优化 细化&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#49-vectorizationcc---%E8%87%AA%E5%8A%A8%E5%90%91%E9%87%8F%E5%8C%96%E4%BC%98%E5%8C%96-%E7%BB%86%E5%8C%96"&gt;49. &lt;code&gt;vectorization.cc&lt;/code&gt; - 自动向量化优化 细化&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#50-loop_tilingcc---%E5%BE%AA%E7%8E%AF%E5%88%86%E5%9D%97%E4%BC%98%E5%8C%96-%E7%BB%86%E5%8C%96"&gt;50. &lt;code&gt;loop_tiling.cc&lt;/code&gt; - 循环分块优化 细化&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#51-tail_callcc---%E5%B0%BE%E8%B0%83%E7%94%A8%E4%BC%98%E5%8C%96-%E7%BB%86%E5%8C%96"&gt;51. &lt;code&gt;tail_call.cc&lt;/code&gt; - 尾调用优化 细化&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id="1-dead_codecc---死代码消除-细化"&gt;1. &lt;code&gt;dead_code.cc&lt;/code&gt; - 死代码消除 细化&lt;/h3&gt;
+&lt;p&gt;&lt;strong&gt;优化目的&lt;/strong&gt;:&lt;/p&gt;</description></item></channel></rss>

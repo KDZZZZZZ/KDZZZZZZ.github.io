@@ -1,138 +1,139 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Compiler on Oops</title><link>https://KDZZZZZZ.github.io/tags/compiler/</link><description>Recent content in Compiler on Oops</description><generator>Hugo -- 0.143.1</generator><language>en-us</language><lastBuildDate>Tue, 28 Jan 2025 00:00:00 +0800</lastBuildDate><atom:link href="https://KDZZZZZZ.github.io/tags/compiler/index.xml" rel="self" type="application/rss+xml"/><item><title>TVM代码库解析：Relay层结构与优化Pass</title><link>https://KDZZZZZZ.github.io/posts/tvm%E4%BB%A3%E7%A0%81%E5%BA%93%E8%A7%A3%E6%9E%90relay%E5%B1%82%E7%BB%93%E6%9E%84%E4%B8%8E%E4%BC%98%E5%8C%96pass/</link><pubDate>Tue, 28 Jan 2025 00:00:00 +0800</pubDate><guid>https://KDZZZZZZ.github.io/posts/tvm%E4%BB%A3%E7%A0%81%E5%BA%93%E8%A7%A3%E6%9E%90relay%E5%B1%82%E7%BB%93%E6%9E%84%E4%B8%8E%E4%BC%98%E5%8C%96pass/</guid><description>&lt;p>relay层主要由数据结构类(如Constant)和节点类(如ConstantNode)组成。
-下面梳理一下他们的继承链。&lt;/p>
-&lt;p>ObjectRef → BaseExpr → RelayExpr → Constant&lt;/p>
-&lt;p>Object → BaseExprNode → RelayExprNode → ConstantNode&lt;/p>
-&lt;blockquote>
-&lt;p>源代码库中使用了&lt;code>using ExprNode = tvm::RelayExprNode;&lt;/code>&lt;/p>&lt;/blockquote>
-&lt;p>这里先赘述一下上面每个类的的功能：&lt;/p>
-&lt;h4 id="1-object-includetvmruntimeobjecth">&lt;strong>(1) &lt;code>Object&lt;/code> (include/tvm/runtime/object.h)&lt;/strong>&lt;/h4>
-&lt;ul>
-&lt;li>&lt;strong>功能&lt;/strong>：
-&lt;ul>
-&lt;li>TVM &lt;strong>所有对象的基类&lt;/strong>，提供 &lt;strong>引用计数&lt;/strong> 和 &lt;strong>类型系统&lt;/strong> 支持&lt;/li>
-&lt;li>实现 &lt;code>RefCount&lt;/code> 机制（通过 &lt;code>use_count&lt;/code> 成员）&lt;/li>
-&lt;li>提供 &lt;code>type_index&lt;/code> 用于运行时类型识别（RTTI）&lt;/li>
-&lt;/ul>
-&lt;/li>
-&lt;li>&lt;strong>关键方法&lt;/strong>：
-&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">virtual&lt;/span> &lt;span style="color:#66d9ef">uint32_t&lt;/span> &lt;span style="color:#a6e22e">type_index&lt;/span>() &lt;span style="color:#66d9ef">const&lt;/span>; &lt;span style="color:#75715e">// 类型标识
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>&lt;span style="color:#66d9ef">void&lt;/span> &lt;span style="color:#a6e22e">IncRef&lt;/span>(); &lt;span style="color:#75715e">// 增加引用计数
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>&lt;span style="color:#66d9ef">void&lt;/span> &lt;span style="color:#a6e22e">DecRef&lt;/span>(); &lt;span style="color:#75715e">// 减少引用计数
-&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/li>
-&lt;/ul>
-&lt;h4 id="2-objectref-includetvmruntimeobjecth">&lt;strong>(2) &lt;code>ObjectRef&lt;/code> (include/tvm/runtime/object.h)&lt;/strong>&lt;/h4>
-&lt;ul>
-&lt;li>&lt;strong>功能&lt;/strong>：
-&lt;ul>
-&lt;li>所有 &lt;strong>对象引用&lt;/strong> 的基类模板（如 &lt;code>Constant&lt;/code> 本质是 &lt;code>ObjectRef&amp;lt;ConstantNode&amp;gt;&lt;/code>）&lt;/li>
-&lt;li>通过智能指针 (&lt;code>ObjectPtr&lt;/code>) &lt;strong>管理 Object 子类的生命周期&lt;/strong>&lt;/li>
-&lt;li>提供 &lt;strong>类型安全转换接口&lt;/strong>（如 &lt;code>as&amp;lt;T&amp;gt;()&lt;/code>）&lt;/li>
-&lt;/ul>
-&lt;/li>
-&lt;li>&lt;strong>关键行为&lt;/strong>：
-&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">template&lt;/span>&lt;span style="color:#f92672">&amp;lt;&lt;/span>&lt;span style="color:#66d9ef">typename&lt;/span> T&lt;span style="color:#f92672">&amp;gt;&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">const&lt;/span> T&lt;span style="color:#f92672">*&lt;/span> as() &lt;span style="color:#66d9ef">const&lt;/span>; &lt;span style="color:#75715e">// 安全类型转换
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>&lt;span style="color:#66d9ef">operator&lt;/span> &lt;span style="color:#a6e22e">bool&lt;/span>() &lt;span style="color:#66d9ef">const&lt;/span>; &lt;span style="color:#75715e">// 检查是否非空
-&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/li>
-&lt;/ul>
-&lt;h4 id="3-baseexprnode-includetvmirexprh">&lt;strong>(3) &lt;code>BaseExprNode&lt;/code> (include/tvm/ir/expr.h)&lt;/strong>&lt;/h4>
-&lt;ul>
-&lt;li>&lt;strong>继承关系&lt;/strong>：&lt;code>Object&lt;/code> → &lt;code>BaseExprNode&lt;/code>&lt;/li>
-&lt;li>&lt;strong>功能&lt;/strong>：
-&lt;ul>
-&lt;li>所有 &lt;strong>表达式节点&lt;/strong> 的抽象基类&lt;/li>
-&lt;li>定义表达式通用接口：
-&lt;ul>
-&lt;li>数据类型 (&lt;code>dtype&lt;/code>)&lt;/li>
-&lt;li>源码位置 (&lt;code>span&lt;/code>)&lt;/li>
-&lt;li>虚函数 &lt;code>SEqualReduce&lt;/code>（用于结构相等性比较）&lt;/li>
-&lt;/ul>
-&lt;/li>
-&lt;/ul>
-&lt;/li>
-&lt;li>&lt;strong>关键成员&lt;/strong>：
-&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>runtime&lt;span style="color:#f92672">::&lt;/span>DataType dtype; &lt;span style="color:#75715e">// 数据类型（如 float32）
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>Span span; &lt;span style="color:#75715e">// 源码位置信息（用于调试）
-&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/li>
-&lt;/ul>
-&lt;h4 id="4-baseexpr-includetvmirexprh">&lt;strong>(4) &lt;code>BaseExpr&lt;/code> (include/tvm/ir/expr.h)&lt;/strong>&lt;/h4>
-&lt;ul>
-&lt;li>&lt;strong>继承关系&lt;/strong>：&lt;code>ObjectRef&lt;/code> → &lt;code>BaseExpr&lt;/code>&lt;/li>
-&lt;li>&lt;strong>功能&lt;/strong>：
-&lt;ul>
-&lt;li>所有 &lt;strong>表达式引用&lt;/strong> 的基类（如 &lt;code>Constant&lt;/code>、&lt;code>Var&lt;/code> 等）&lt;/li>
-&lt;li>提供对 &lt;code>BaseExprNode&lt;/code> 的通用访问接口&lt;/li>
-&lt;li>重载运算符（如 &lt;code>operator==&lt;/code>）实现表达式比较&lt;/li>
-&lt;/ul>
-&lt;/li>
-&lt;/ul>
-&lt;h4 id="5-relayexprnode-includetvmirexprh">&lt;strong>(5) &lt;code>RelayExprNode&lt;/code> (include/tvm/ir/expr.h)&lt;/strong>&lt;/h4>
-&lt;ul>
-&lt;li>&lt;strong>继承关系&lt;/strong>：&lt;code>BaseExprNode&lt;/code> → &lt;code>RelayExprNode&lt;/code>&lt;/li>
-&lt;li>&lt;strong>功能&lt;/strong>：
-&lt;ul>
-&lt;li>&lt;strong>Relay 表达式体系的节点基类&lt;/strong>，定义所有高层计算图节点的通用行为&lt;/li>
-&lt;li>存储 Relay 特有的元数据：
-&lt;ul>
-&lt;li>&lt;strong>类型信息&lt;/strong> (&lt;code>checked_type_&lt;/code>): 类型推断后的结果（如 &lt;code>TensorType(shape=[1,3], dtype=float32)&lt;/code>）&lt;/li>
-&lt;li>&lt;strong>源码位置&lt;/strong> (&lt;code>span&lt;/code>): 用于调试和错误定位&lt;/li>
-&lt;/ul>
-&lt;/li>
-&lt;li>实现 &lt;strong>结构等价性检查&lt;/strong> (&lt;code>SEqualReduce&lt;/code>) 和 &lt;strong>哈希生成&lt;/strong> (&lt;code>SHashReduce&lt;/code>) 的虚函数&lt;/li>
-&lt;li>支持 &lt;strong>递归遍历子节点&lt;/strong> 的接口（用于优化 Pass 或分析）&lt;/li>
-&lt;/ul>
-&lt;/li>
-&lt;li>&lt;strong>关键成员&lt;/strong>：
-&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">mutable&lt;/span> Type checked_type_; &lt;span style="color:#75715e">// 类型推断结果（可缓存）
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>Span span; &lt;span style="color:#75715e">// 源码位置信息
-&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/li>
-&lt;li>&lt;strong>典型子类&lt;/strong>：
-&lt;ul>
-&lt;li>&lt;code>ConstantNode&lt;/code>（常量）&lt;/li>
-&lt;li>&lt;code>VarNode&lt;/code>（变量）&lt;/li>
-&lt;li>&lt;code>CallNode&lt;/code>（函数调用）&lt;/li>
-&lt;li>&lt;code>FunctionNode&lt;/code>（函数定义）&lt;/li>
-&lt;/ul>
-&lt;/li>
-&lt;/ul>
-&lt;h4 id="6-relayexpr-includetvmirexprh">&lt;strong>(6) &lt;code>RelayExpr&lt;/code> (include/tvm/ir/expr.h)&lt;/strong>&lt;/h4>
-&lt;ul>
-&lt;li>&lt;strong>继承关系&lt;/strong>：&lt;code>BaseExpr&lt;/code> → &lt;code>RelayExpr&lt;/code>&lt;/li>
-&lt;li>&lt;strong>功能&lt;/strong>：
-&lt;ul>
-&lt;li>通过&lt;code>TVM_DEFINE_OBJECT_REF_METHODS&lt;/code>宏定义了对象引用管理、类型转换和节点访问的功能&lt;/li>
-&lt;/ul>
-&lt;/li>
-&lt;/ul>
-&lt;h4 id="7-constantnode-includetvmrelayexprh">&lt;strong>(7) &lt;code>ConstantNode&lt;/code> (include/tvm/relay/expr.h)&lt;/strong>&lt;/h4>
-&lt;ul>
-&lt;li>&lt;strong>继承关系&lt;/strong>：&lt;code>RelayExprNode&lt;/code> → &lt;code>ConstantNode&lt;/code>&lt;/li>
-&lt;li>&lt;strong>功能&lt;/strong>：
-&lt;ul>
-&lt;li>&lt;strong>存储常量数据的节点&lt;/strong>（具体实现）&lt;/li>
-&lt;li>持有 &lt;code>runtime::NDArray&lt;/code> 表示常量值&lt;/li>
-&lt;li>实现 &lt;code>SEqualReduce&lt;/code> 比较常量值是否相等&lt;/li>
-&lt;li>实现 &lt;code>SHashReduce&lt;/code> 生成哈希值&lt;/li>
-&lt;/ul>
-&lt;/li>
-&lt;li>&lt;strong>关键成员&lt;/strong>：
-&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>runtime&lt;span style="color:#f92672">::&lt;/span>NDArray data; &lt;span style="color:#75715e">// 常量数据（可以是标量或张量）
-&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/li>
-&lt;/ul>
-&lt;h4 id="8-constant-includetvmrelayexprh">&lt;strong>(8) &lt;code>Constant&lt;/code> (include/tvm/relay/expr.h)&lt;/strong>&lt;/h4>
-&lt;ul>
-&lt;li>&lt;strong>继承关系&lt;/strong>：&lt;code>RelayExpr&lt;/code> → &lt;code>Constant&lt;/code>&lt;/li>
-&lt;li>&lt;strong>功能&lt;/strong>：
-&lt;ul>
-&lt;li>&lt;strong>用户直接使用的常量包装类&lt;/strong>&lt;/li>
-&lt;li>构造函数封装 &lt;code>ConstantNode&lt;/code> 的创建&lt;/li>
-&lt;li>提供对 &lt;code>data&lt;/code> 的安全访问方法&lt;/li>
-&lt;li>示例用法：
-&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-cpp" data-lang="cpp">&lt;span style="display:flex;">&lt;span>NDArray arr &lt;span style="color:#f92672">=&lt;/span> ...;
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Constant c &lt;span style="color:#f92672">=&lt;/span> Constant(arr); &lt;span style="color:#75715e">// 创建常量
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span>Expr expr &lt;span style="color:#f92672">=&lt;/span> c; &lt;span style="color:#75715e">// 可隐式转换为基类
-&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/li>
-&lt;/ul>
-&lt;/li>
-&lt;/ul>
-&lt;p>有了对基类的功能认识，我们只需要继续了解类似&lt;code>Constant&lt;/code>和&lt;code>ConstantNode&lt;/code>类的其他主要类实现。&lt;/p></description></item></channel></rss>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Compiler on Oops</title><link>https://KDZZZZZZ.github.io/tags/compiler/</link><description>Recent content in Compiler on Oops</description><generator>Hugo -- 0.152.2</generator><language>en-us</language><lastBuildDate>Tue, 28 Jan 2025 00:00:00 +0800</lastBuildDate><atom:link href="https://KDZZZZZZ.github.io/tags/compiler/index.xml" rel="self" type="application/rss+xml"/><item><title>TVM代码库解析：Relay层结构与优化Pass</title><link>https://KDZZZZZZ.github.io/posts/tvm%E4%BB%A3%E7%A0%81%E5%BA%93%E8%A7%A3%E6%9E%90relay%E5%B1%82%E7%BB%93%E6%9E%84%E4%B8%8E%E4%BC%98%E5%8C%96pass/</link><pubDate>Tue, 28 Jan 2025 00:00:00 +0800</pubDate><guid>https://KDZZZZZZ.github.io/posts/tvm%E4%BB%A3%E7%A0%81%E5%BA%93%E8%A7%A3%E6%9E%90relay%E5%B1%82%E7%BB%93%E6%9E%84%E4%B8%8E%E4%BC%98%E5%8C%96pass/</guid><description>&lt;p&gt;relay层主要由数据结构类(如Constant)和节点类(如ConstantNode)组成。
+下面梳理一下他们的继承链。&lt;/p&gt;
+&lt;p&gt;ObjectRef → BaseExpr → RelayExpr → Constant&lt;/p&gt;
+&lt;p&gt;Object → BaseExprNode → RelayExprNode → ConstantNode&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;源代码库中使用了&lt;code&gt;using ExprNode = tvm::RelayExprNode;&lt;/code&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;这里先赘述一下上面每个类的的功能：&lt;/p&gt;
+&lt;h4 id="1"&gt;&lt;strong&gt;(1) &lt;code&gt;Object&lt;/code&gt; (include/tvm/runtime/object.h)&lt;/strong&gt;&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;功能&lt;/strong&gt;：
+&lt;ul&gt;
+&lt;li&gt;TVM &lt;strong&gt;所有对象的基类&lt;/strong&gt;，提供 &lt;strong&gt;引用计数&lt;/strong&gt; 和 &lt;strong&gt;类型系统&lt;/strong&gt; 支持&lt;/li&gt;
+&lt;li&gt;实现 &lt;code&gt;RefCount&lt;/code&gt; 机制（通过 &lt;code&gt;use_count&lt;/code&gt; 成员）&lt;/li&gt;
+&lt;li&gt;提供 &lt;code&gt;type_index&lt;/code&gt; 用于运行时类型识别（RTTI）&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;关键方法&lt;/strong&gt;：
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code class="language-cpp" data-lang="cpp"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#007020;font-weight:bold"&gt;virtual&lt;/span&gt; &lt;span style="color:#902000"&gt;uint32_t&lt;/span&gt; &lt;span style="color:#06287e"&gt;type_index&lt;/span&gt;() &lt;span style="color:#007020;font-weight:bold"&gt;const&lt;/span&gt;; &lt;span style="color:#60a0b0;font-style:italic"&gt;// 类型标识
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#60a0b0;font-style:italic"&gt;&lt;/span&gt;&lt;span style="color:#902000"&gt;void&lt;/span&gt; &lt;span style="color:#06287e"&gt;IncRef&lt;/span&gt;(); &lt;span style="color:#60a0b0;font-style:italic"&gt;// 增加引用计数
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#60a0b0;font-style:italic"&gt;&lt;/span&gt;&lt;span style="color:#902000"&gt;void&lt;/span&gt; &lt;span style="color:#06287e"&gt;DecRef&lt;/span&gt;(); &lt;span style="color:#60a0b0;font-style:italic"&gt;// 减少引用计数
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id="2"&gt;&lt;strong&gt;(2) &lt;code&gt;ObjectRef&lt;/code&gt; (include/tvm/runtime/object.h)&lt;/strong&gt;&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;功能&lt;/strong&gt;：
+&lt;ul&gt;
+&lt;li&gt;所有 &lt;strong&gt;对象引用&lt;/strong&gt; 的基类模板（如 &lt;code&gt;Constant&lt;/code&gt; 本质是 &lt;code&gt;ObjectRef&amp;lt;ConstantNode&amp;gt;&lt;/code&gt;）&lt;/li&gt;
+&lt;li&gt;通过智能指针 (&lt;code&gt;ObjectPtr&lt;/code&gt;) &lt;strong&gt;管理 Object 子类的生命周期&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;提供 &lt;strong&gt;类型安全转换接口&lt;/strong&gt;（如 &lt;code&gt;as&amp;lt;T&amp;gt;()&lt;/code&gt;）&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;关键行为&lt;/strong&gt;：
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code class="language-cpp" data-lang="cpp"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#007020;font-weight:bold"&gt;template&lt;/span&gt;&lt;span style="color:#666"&gt;&amp;lt;&lt;/span&gt;&lt;span style="color:#007020;font-weight:bold"&gt;typename&lt;/span&gt; T&lt;span style="color:#666"&gt;&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#007020;font-weight:bold"&gt;const&lt;/span&gt; T&lt;span style="color:#666"&gt;*&lt;/span&gt; as() &lt;span style="color:#007020;font-weight:bold"&gt;const&lt;/span&gt;; &lt;span style="color:#60a0b0;font-style:italic"&gt;// 安全类型转换
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#60a0b0;font-style:italic"&gt;&lt;/span&gt;&lt;span style="color:#007020;font-weight:bold"&gt;operator&lt;/span&gt; &lt;span style="color:#06287e"&gt;bool&lt;/span&gt;() &lt;span style="color:#007020;font-weight:bold"&gt;const&lt;/span&gt;; &lt;span style="color:#60a0b0;font-style:italic"&gt;// 检查是否非空
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id="3"&gt;&lt;strong&gt;(3) &lt;code&gt;BaseExprNode&lt;/code&gt; (include/tvm/ir/expr.h)&lt;/strong&gt;&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;继承关系&lt;/strong&gt;：&lt;code&gt;Object&lt;/code&gt; → &lt;code&gt;BaseExprNode&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;功能&lt;/strong&gt;：
+&lt;ul&gt;
+&lt;li&gt;所有 &lt;strong&gt;表达式节点&lt;/strong&gt; 的抽象基类&lt;/li&gt;
+&lt;li&gt;定义表达式通用接口：
+&lt;ul&gt;
+&lt;li&gt;数据类型 (&lt;code&gt;dtype&lt;/code&gt;)&lt;/li&gt;
+&lt;li&gt;源码位置 (&lt;code&gt;span&lt;/code&gt;)&lt;/li&gt;
+&lt;li&gt;虚函数 &lt;code&gt;SEqualReduce&lt;/code&gt;（用于结构相等性比较）&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;关键成员&lt;/strong&gt;：
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code class="language-cpp" data-lang="cpp"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;runtime&lt;span style="color:#666"&gt;::&lt;/span&gt;DataType dtype; &lt;span style="color:#60a0b0;font-style:italic"&gt;// 数据类型（如 float32）
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#60a0b0;font-style:italic"&gt;&lt;/span&gt;Span span; &lt;span style="color:#60a0b0;font-style:italic"&gt;// 源码位置信息（用于调试）
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id="4"&gt;&lt;strong&gt;(4) &lt;code&gt;BaseExpr&lt;/code&gt; (include/tvm/ir/expr.h)&lt;/strong&gt;&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;继承关系&lt;/strong&gt;：&lt;code&gt;ObjectRef&lt;/code&gt; → &lt;code&gt;BaseExpr&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;功能&lt;/strong&gt;：
+&lt;ul&gt;
+&lt;li&gt;所有 &lt;strong&gt;表达式引用&lt;/strong&gt; 的基类（如 &lt;code&gt;Constant&lt;/code&gt;、&lt;code&gt;Var&lt;/code&gt; 等）&lt;/li&gt;
+&lt;li&gt;提供对 &lt;code&gt;BaseExprNode&lt;/code&gt; 的通用访问接口&lt;/li&gt;
+&lt;li&gt;重载运算符（如 &lt;code&gt;operator==&lt;/code&gt;）实现表达式比较&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id="5"&gt;&lt;strong&gt;(5) &lt;code&gt;RelayExprNode&lt;/code&gt; (include/tvm/ir/expr.h)&lt;/strong&gt;&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;继承关系&lt;/strong&gt;：&lt;code&gt;BaseExprNode&lt;/code&gt; → &lt;code&gt;RelayExprNode&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;功能&lt;/strong&gt;：
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Relay 表达式体系的节点基类&lt;/strong&gt;，定义所有高层计算图节点的通用行为&lt;/li&gt;
+&lt;li&gt;存储 Relay 特有的元数据：
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;类型信息&lt;/strong&gt; (&lt;code&gt;checked_type_&lt;/code&gt;): 类型推断后的结果（如 &lt;code&gt;TensorType(shape=[1,3], dtype=float32)&lt;/code&gt;）&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;源码位置&lt;/strong&gt; (&lt;code&gt;span&lt;/code&gt;): 用于调试和错误定位&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;实现 &lt;strong&gt;结构等价性检查&lt;/strong&gt; (&lt;code&gt;SEqualReduce&lt;/code&gt;) 和 &lt;strong&gt;哈希生成&lt;/strong&gt; (&lt;code&gt;SHashReduce&lt;/code&gt;) 的虚函数&lt;/li&gt;
+&lt;li&gt;支持 &lt;strong&gt;递归遍历子节点&lt;/strong&gt; 的接口（用于优化 Pass 或分析）&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;关键成员&lt;/strong&gt;：
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code class="language-cpp" data-lang="cpp"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#007020;font-weight:bold"&gt;mutable&lt;/span&gt; Type checked_type_; &lt;span style="color:#60a0b0;font-style:italic"&gt;// 类型推断结果（可缓存）
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#60a0b0;font-style:italic"&gt;&lt;/span&gt;Span span; &lt;span style="color:#60a0b0;font-style:italic"&gt;// 源码位置信息
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;典型子类&lt;/strong&gt;：
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;ConstantNode&lt;/code&gt;（常量）&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;VarNode&lt;/code&gt;（变量）&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;CallNode&lt;/code&gt;（函数调用）&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;FunctionNode&lt;/code&gt;（函数定义）&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id="6"&gt;&lt;strong&gt;(6) &lt;code&gt;RelayExpr&lt;/code&gt; (include/tvm/ir/expr.h)&lt;/strong&gt;&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;继承关系&lt;/strong&gt;：&lt;code&gt;BaseExpr&lt;/code&gt; → &lt;code&gt;RelayExpr&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;功能&lt;/strong&gt;：
+&lt;ul&gt;
+&lt;li&gt;通过&lt;code&gt;TVM_DEFINE_OBJECT_REF_METHODS&lt;/code&gt;宏定义了对象引用管理、类型转换和节点访问的功能&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id="7"&gt;&lt;strong&gt;(7) &lt;code&gt;ConstantNode&lt;/code&gt; (include/tvm/relay/expr.h)&lt;/strong&gt;&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;继承关系&lt;/strong&gt;：&lt;code&gt;RelayExprNode&lt;/code&gt; → &lt;code&gt;ConstantNode&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;功能&lt;/strong&gt;：
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;存储常量数据的节点&lt;/strong&gt;（具体实现）&lt;/li&gt;
+&lt;li&gt;持有 &lt;code&gt;runtime::NDArray&lt;/code&gt; 表示常量值&lt;/li&gt;
+&lt;li&gt;实现 &lt;code&gt;SEqualReduce&lt;/code&gt; 比较常量值是否相等&lt;/li&gt;
+&lt;li&gt;实现 &lt;code&gt;SHashReduce&lt;/code&gt; 生成哈希值&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;关键成员&lt;/strong&gt;：
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code class="language-cpp" data-lang="cpp"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;runtime&lt;span style="color:#666"&gt;::&lt;/span&gt;NDArray data; &lt;span style="color:#60a0b0;font-style:italic"&gt;// 常量数据（可以是标量或张量）
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id="8"&gt;&lt;strong&gt;(8) &lt;code&gt;Constant&lt;/code&gt; (include/tvm/relay/expr.h)&lt;/strong&gt;&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;继承关系&lt;/strong&gt;：&lt;code&gt;RelayExpr&lt;/code&gt; → &lt;code&gt;Constant&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;功能&lt;/strong&gt;：
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;用户直接使用的常量包装类&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;构造函数封装 &lt;code&gt;ConstantNode&lt;/code&gt; 的创建&lt;/li&gt;
+&lt;li&gt;提供对 &lt;code&gt;data&lt;/code&gt; 的安全访问方法&lt;/li&gt;
+&lt;li&gt;示例用法：
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code class="language-cpp" data-lang="cpp"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;NDArray arr &lt;span style="color:#666"&gt;=&lt;/span&gt; ...;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;Constant c &lt;span style="color:#666"&gt;=&lt;/span&gt; Constant(arr); &lt;span style="color:#60a0b0;font-style:italic"&gt;// 创建常量
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#60a0b0;font-style:italic"&gt;&lt;/span&gt;Expr expr &lt;span style="color:#666"&gt;=&lt;/span&gt; c; &lt;span style="color:#60a0b0;font-style:italic"&gt;// 可隐式转换为基类
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;有了对基类的功能认识，我们只需要继续了解类似&lt;code&gt;Constant&lt;/code&gt;和&lt;code&gt;ConstantNode&lt;/code&gt;类的其他主要类实现。&lt;/p&gt;</description></item></channel></rss>

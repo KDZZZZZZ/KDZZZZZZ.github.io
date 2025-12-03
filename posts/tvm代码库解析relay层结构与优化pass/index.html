@@ -1,375 +1,97 @@
-<!doctype html><html lang=en dir=auto><head><meta charset=utf-8><meta http-equiv=X-UA-Compatible content="IE=edge"><meta name=viewport content="width=device-width,initial-scale=1,shrink-to-fit=no"><meta name=robots content="index, follow"><title>TVM代码库解析：Relay层结构与优化Pass | Oops</title>
-<meta name=keywords content="TVM,Compiler,Deep Learning"><meta name=description content="relay层主要由数据结构类(如Constant)和节点类(如ConstantNode)组成。
-下面梳理一下他们的继承链。
-ObjectRef → BaseExpr → RelayExpr → Constant
-Object → BaseExprNode → RelayExprNode → ConstantNode
-
-源代码库中使用了using ExprNode = tvm::RelayExprNode;
-这里先赘述一下上面每个类的的功能：
-(1) Object (include/tvm/runtime/object.h)
-
-功能：
-
-TVM 所有对象的基类，提供 引用计数 和 类型系统 支持
-实现 RefCount 机制（通过 use_count 成员）
-提供 type_index 用于运行时类型识别（RTTI）
-
-
-关键方法：
-virtual uint32_t type_index() const; // 类型标识
-void IncRef();  // 增加引用计数
-void DecRef();  // 减少引用计数
-
-
-(2) ObjectRef (include/tvm/runtime/object.h)
-
-功能：
-
-所有 对象引用 的基类模板（如 Constant 本质是 ObjectRef<ConstantNode>）
-通过智能指针 (ObjectPtr) 管理 Object 子类的生命周期
-提供 类型安全转换接口（如 as<T>()）
-
-
-关键行为：
-template<typename T>
-const T* as() const; // 安全类型转换
-operator bool() const; // 检查是否非空
-
-
-(3) BaseExprNode (include/tvm/ir/expr.h)
-
-继承关系：Object → BaseExprNode
-功能：
-
-所有 表达式节点 的抽象基类
-定义表达式通用接口：
-
-数据类型 (dtype)
-源码位置 (span)
-虚函数 SEqualReduce（用于结构相等性比较）
-
-
-
-
-关键成员：
-runtime::DataType dtype; // 数据类型（如 float32）
-Span span;               // 源码位置信息（用于调试）
-
-
-(4) BaseExpr (include/tvm/ir/expr.h)
-
-继承关系：ObjectRef → BaseExpr
-功能：
-
-所有 表达式引用 的基类（如 Constant、Var 等）
-提供对 BaseExprNode 的通用访问接口
-重载运算符（如 operator==）实现表达式比较
-
-
-
-(5) RelayExprNode (include/tvm/ir/expr.h)
-
-继承关系：BaseExprNode → RelayExprNode
-功能：
-
-Relay 表达式体系的节点基类，定义所有高层计算图节点的通用行为
-存储 Relay 特有的元数据：
-
-类型信息 (checked_type_): 类型推断后的结果（如 TensorType(shape=[1,3], dtype=float32)）
-源码位置 (span): 用于调试和错误定位
-
-
-实现 结构等价性检查 (SEqualReduce) 和 哈希生成 (SHashReduce) 的虚函数
-支持 递归遍历子节点 的接口（用于优化 Pass 或分析）
-
-
-关键成员：
-mutable Type checked_type_;  // 类型推断结果（可缓存）
-Span span;                   // 源码位置信息
-
-典型子类：
-
-ConstantNode（常量）
-VarNode（变量）
-CallNode（函数调用）
-FunctionNode（函数定义）
-
-
-
-(6) RelayExpr (include/tvm/ir/expr.h)
-
-继承关系：BaseExpr → RelayExpr
-功能：
-
-通过TVM_DEFINE_OBJECT_REF_METHODS宏定义了对象引用管理、类型转换和节点访问的功能
-
-
-
-(7) ConstantNode (include/tvm/relay/expr.h)
-
-继承关系：RelayExprNode → ConstantNode
-功能：
-
-存储常量数据的节点（具体实现）
-持有 runtime::NDArray 表示常量值
-实现 SEqualReduce 比较常量值是否相等
-实现 SHashReduce 生成哈希值
-
-
-关键成员：
-runtime::NDArray data; // 常量数据（可以是标量或张量）
-
-
-(8) Constant (include/tvm/relay/expr.h)
-
-继承关系：RelayExpr → Constant
-功能：
-
-用户直接使用的常量包装类
-构造函数封装 ConstantNode 的创建
-提供对 data 的安全访问方法
-示例用法：
-NDArray arr = ...;
-Constant c = Constant(arr);  // 创建常量
-Expr expr = c;               // 可隐式转换为基类
-
-
-
-
-有了对基类的功能认识，我们只需要继续了解类似Constant和ConstantNode类的其他主要类实现。"><meta name=author content="Oops"><link rel=canonical href=https://KDZZZZZZ.github.io/posts/tvm%E4%BB%A3%E7%A0%81%E5%BA%93%E8%A7%A3%E6%9E%90relay%E5%B1%82%E7%BB%93%E6%9E%84%E4%B8%8E%E4%BC%98%E5%8C%96pass/><link crossorigin=anonymous href=/assets/css/stylesheet.67188688f1b3a513661c9ad0c9f0ac1dbd8d2bae64f9d0fec14f4d47910b2052.css integrity="sha256-ZxiGiPGzpRNmHJrQyfCsHb2NK65k+dD+wU9NR5ELIFI=" rel="preload stylesheet" as=style><link rel=icon href=https://KDZZZZZZ.github.io/favicon.ico><link rel=icon type=image/png sizes=16x16 href=https://KDZZZZZZ.github.io/favicon-16x16.png><link rel=icon type=image/png sizes=32x32 href=https://KDZZZZZZ.github.io/favicon-32x32.png><link rel=apple-touch-icon href=https://KDZZZZZZ.github.io/apple-touch-icon.png><link rel=mask-icon href=https://KDZZZZZZ.github.io/safari-pinned-tab.svg><meta name=theme-color content="#2e2e33"><meta name=msapplication-TileColor content="#2e2e33"><link rel=alternate hreflang=en href=https://KDZZZZZZ.github.io/posts/tvm%E4%BB%A3%E7%A0%81%E5%BA%93%E8%A7%A3%E6%9E%90relay%E5%B1%82%E7%BB%93%E6%9E%84%E4%B8%8E%E4%BC%98%E5%8C%96pass/><noscript><style>#theme-toggle,.top-link{display:none}</style></noscript><style>:root{--main-width:1200px !important;--nav-width:1200px !important}body{background-image:url(/images/430209634e37dee242d5d8414cf9b7b2b6022715.jpg)!important;background-size:cover!important;background-position:50%!important;background-attachment:fixed!important;background-repeat:no-repeat!important;min-height:100vh!important;margin:0!important;padding:0!important}body::before{content:""!important;position:fixed!important;top:0!important;left:0!important;width:100%!important;height:100%!important;background:rgba(0,0,0,.3)!important;z-index:-1!important}.main{background:0 0!important;box-shadow:none!important;backdrop-filter:none!important;border:none!important;padding:20px!important;max-width:var(--main-width)!important;width:100%!important;margin:0 auto!important}.post-single{background:rgba(0,0,0,.7)!important;backdrop-filter:blur(15px)!important;border:1px solid rgba(255,255,255,.1)!important;border-radius:12px!important;padding:40px!important;margin:20px auto!important;box-shadow:0 8px 32px rgba(0,0,0,.37)!important;width:100%!important}.post-content{font-size:1.1em!important;line-height:1.8!important;max-width:100%!important}.post-content h2,.post-content h3,.post-content h4{margin-top:2em!important;margin-bottom:1em!important;color:#fff!important}.post-content p{margin:1.5em 0!important}.post-content code{background:rgba(255,255,255,.1)!important;padding:2px 5px!important;border-radius:3px!important}.post-content pre{background:rgba(0,0,0,.5)!important;padding:20px!important;border-radius:8px!important;overflow-x:auto!important;width:100%!important}.nav{background:rgba(0,0,0,.6)!important;backdrop-filter:blur(10px)!important;border-bottom:1px solid rgba(255,255,255,.1)!important;margin-bottom:30px!important;max-width:var(--nav-width)!important;width:100%!important;margin:0 auto 30px!important}.profile{text-align:center!important}.profile img{border:3px solid rgba(255,255,255,.2)!important;transition:transform .3s ease!important;box-shadow:0 0 20px rgba(0,0,0,.2)!important;max-width:170px!important;border-radius:50%!important}.profile img:hover{transform:scale(1.05)!important;border-color:rgba(255,255,255,.4)!important}.post-entry{background:rgba(0,0,0,.6)!important;backdrop-filter:blur(8px)!important;border:1px solid rgba(255,255,255,.1)!important;transition:all .3s ease!important;border-radius:12px!important;padding:20px!important;margin-bottom:20px!important}.post-entry:hover{transform:translateY(-5px)!important;background:rgba(0,0,0,.7)!important;box-shadow:0 8px 32px rgba(0,0,0,.37)!important}.dark{color:#fff!important}a{color:#fff!important;text-decoration:none!important}a:hover{color:rgba(255,255,255,.8)!important}.button{background:rgba(0,0,0,.6)!important;border:1px solid rgba(255,255,255,.1)!important;transition:all .3s ease!important;padding:8px 20px!important;border-radius:20px!important;display:inline-block!important;margin:5px!important}.button:hover{background:rgba(0,0,0,.7)!important;transform:translateY(-2px)!important;box-shadow:0 5px 15px rgba(0,0,0,.2)!important}.first-entry{background:rgba(0,0,0,.6)!important;backdrop-filter:blur(8px)!important;border:1px solid rgba(255,255,255,.1)!important;border-radius:12px!important;padding:20px!important;margin-bottom:20px!important}.social-icons svg{fill:#fff!important;opacity:.9!important;transition:all .3s ease!important}.social-icons svg:hover{opacity:1!important;transform:scale(1.1)!important}.post-tags a,.post-categories a{background:rgba(255,255,255,.1)!important;padding:5px 10px!important;border-radius:15px!important;font-size:.9em!important;transition:all .3s ease!important}.post-tags a:hover,.post-categories a:hover{background:rgba(255,255,255,.2)!important;transform:translateY(-2px)!important}.share-buttons{margin-top:30px!important;padding-top:20px!important;border-top:1px solid rgba(255,255,255,.1)!important}.katex{font-size:1.1em!important}.math-display{overflow-x:auto;overflow-y:hidden;max-width:100%;padding:1em 0}</style><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css integrity=sha384-GvrOXuhMATgEsSwCs4smul74iXGOixntILdUW9XmUC6+HX0sLNAK3q71HotJqlAn crossorigin=anonymous><script defer src=https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js integrity=sha384-cpW21h6RZv/phavutF+AuVYrr+dA8xD9zs6FwLpaCct6O9ctzYFfFr4dgmgccOTx crossorigin=anonymous></script><script defer src=https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js integrity=sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05 crossorigin=anonymous></script><script>document.addEventListener("DOMContentLoaded",function(){renderMathInElement(document.body,{delimiters:[{left:"$$",right:"$$",display:!0},{left:"$",right:"$",display:!1},{left:"\\[",right:"\\]",display:!0},{left:"\\(",right:"\\)",display:!1}],throwOnError:!1})})</script><meta property="og:url" content="https://KDZZZZZZ.github.io/posts/tvm%E4%BB%A3%E7%A0%81%E5%BA%93%E8%A7%A3%E6%9E%90relay%E5%B1%82%E7%BB%93%E6%9E%84%E4%B8%8E%E4%BC%98%E5%8C%96pass/"><meta property="og:site_name" content="Oops"><meta property="og:title" content="TVM代码库解析：Relay层结构与优化Pass"><meta property="og:description" content="relay层主要由数据结构类(如Constant)和节点类(如ConstantNode)组成。 下面梳理一下他们的继承链。
-ObjectRef → BaseExpr → RelayExpr → Constant
-Object → BaseExprNode → RelayExprNode → ConstantNode
-源代码库中使用了using ExprNode = tvm::RelayExprNode;
-这里先赘述一下上面每个类的的功能：
-(1) Object (include/tvm/runtime/object.h) 功能： TVM 所有对象的基类，提供 引用计数 和 类型系统 支持 实现 RefCount 机制（通过 use_count 成员） 提供 type_index 用于运行时类型识别（RTTI） 关键方法： virtual uint32_t type_index() const; // 类型标识 void IncRef(); // 增加引用计数 void DecRef(); // 减少引用计数 (2) ObjectRef (include/tvm/runtime/object.h) 功能： 所有 对象引用 的基类模板（如 Constant 本质是 ObjectRef<ConstantNode>） 通过智能指针 (ObjectPtr) 管理 Object 子类的生命周期 提供 类型安全转换接口（如 as<T>()） 关键行为： template<typename T> const T* as() const; // 安全类型转换 operator bool() const; // 检查是否非空 (3) BaseExprNode (include/tvm/ir/expr.h) 继承关系：Object → BaseExprNode 功能： 所有 表达式节点 的抽象基类 定义表达式通用接口： 数据类型 (dtype) 源码位置 (span) 虚函数 SEqualReduce（用于结构相等性比较） 关键成员： runtime::DataType dtype; // 数据类型（如 float32） Span span; // 源码位置信息（用于调试） (4) BaseExpr (include/tvm/ir/expr.h) 继承关系：ObjectRef → BaseExpr 功能： 所有 表达式引用 的基类（如 Constant、Var 等） 提供对 BaseExprNode 的通用访问接口 重载运算符（如 operator==）实现表达式比较 (5) RelayExprNode (include/tvm/ir/expr.h) 继承关系：BaseExprNode → RelayExprNode 功能： Relay 表达式体系的节点基类，定义所有高层计算图节点的通用行为 存储 Relay 特有的元数据： 类型信息 (checked_type_): 类型推断后的结果（如 TensorType(shape=[1,3], dtype=float32)） 源码位置 (span): 用于调试和错误定位 实现 结构等价性检查 (SEqualReduce) 和 哈希生成 (SHashReduce) 的虚函数 支持 递归遍历子节点 的接口（用于优化 Pass 或分析） 关键成员： mutable Type checked_type_; // 类型推断结果（可缓存） Span span; // 源码位置信息 典型子类： ConstantNode（常量） VarNode（变量） CallNode（函数调用） FunctionNode（函数定义） (6) RelayExpr (include/tvm/ir/expr.h) 继承关系：BaseExpr → RelayExpr 功能： 通过TVM_DEFINE_OBJECT_REF_METHODS宏定义了对象引用管理、类型转换和节点访问的功能 (7) ConstantNode (include/tvm/relay/expr.h) 继承关系：RelayExprNode → ConstantNode 功能： 存储常量数据的节点（具体实现） 持有 runtime::NDArray 表示常量值 实现 SEqualReduce 比较常量值是否相等 实现 SHashReduce 生成哈希值 关键成员： runtime::NDArray data; // 常量数据（可以是标量或张量） (8) Constant (include/tvm/relay/expr.h) 继承关系：RelayExpr → Constant 功能： 用户直接使用的常量包装类 构造函数封装 ConstantNode 的创建 提供对 data 的安全访问方法 示例用法： NDArray arr = ...; Constant c = Constant(arr); // 创建常量 Expr expr = c; // 可隐式转换为基类 有了对基类的功能认识，我们只需要继续了解类似Constant和ConstantNode类的其他主要类实现。"><meta property="og:locale" content="en-us"><meta property="og:type" content="article"><meta property="article:section" content="posts"><meta property="article:published_time" content="2025-01-28T00:00:00+08:00"><meta property="article:modified_time" content="2025-01-28T00:00:00+08:00"><meta property="article:tag" content="TVM"><meta property="article:tag" content="Compiler"><meta property="article:tag" content="Deep Learning"><meta name=twitter:card content="summary"><meta name=twitter:title content="TVM代码库解析：Relay层结构与优化Pass"><meta name=twitter:description content="relay层主要由数据结构类(如Constant)和节点类(如ConstantNode)组成。
-下面梳理一下他们的继承链。
-ObjectRef → BaseExpr → RelayExpr → Constant
-Object → BaseExprNode → RelayExprNode → ConstantNode
-
-源代码库中使用了using ExprNode = tvm::RelayExprNode;
-这里先赘述一下上面每个类的的功能：
-(1) Object (include/tvm/runtime/object.h)
-
-功能：
-
-TVM 所有对象的基类，提供 引用计数 和 类型系统 支持
-实现 RefCount 机制（通过 use_count 成员）
-提供 type_index 用于运行时类型识别（RTTI）
-
-
-关键方法：
-virtual uint32_t type_index() const; // 类型标识
-void IncRef();  // 增加引用计数
-void DecRef();  // 减少引用计数
-
-
-(2) ObjectRef (include/tvm/runtime/object.h)
-
-功能：
-
-所有 对象引用 的基类模板（如 Constant 本质是 ObjectRef<ConstantNode>）
-通过智能指针 (ObjectPtr) 管理 Object 子类的生命周期
-提供 类型安全转换接口（如 as<T>()）
-
-
-关键行为：
-template<typename T>
-const T* as() const; // 安全类型转换
-operator bool() const; // 检查是否非空
-
-
-(3) BaseExprNode (include/tvm/ir/expr.h)
-
-继承关系：Object → BaseExprNode
-功能：
-
-所有 表达式节点 的抽象基类
-定义表达式通用接口：
-
-数据类型 (dtype)
-源码位置 (span)
-虚函数 SEqualReduce（用于结构相等性比较）
-
-
-
-
-关键成员：
-runtime::DataType dtype; // 数据类型（如 float32）
-Span span;               // 源码位置信息（用于调试）
-
-
-(4) BaseExpr (include/tvm/ir/expr.h)
-
-继承关系：ObjectRef → BaseExpr
-功能：
-
-所有 表达式引用 的基类（如 Constant、Var 等）
-提供对 BaseExprNode 的通用访问接口
-重载运算符（如 operator==）实现表达式比较
-
-
-
-(5) RelayExprNode (include/tvm/ir/expr.h)
-
-继承关系：BaseExprNode → RelayExprNode
-功能：
-
-Relay 表达式体系的节点基类，定义所有高层计算图节点的通用行为
-存储 Relay 特有的元数据：
-
-类型信息 (checked_type_): 类型推断后的结果（如 TensorType(shape=[1,3], dtype=float32)）
-源码位置 (span): 用于调试和错误定位
-
-
-实现 结构等价性检查 (SEqualReduce) 和 哈希生成 (SHashReduce) 的虚函数
-支持 递归遍历子节点 的接口（用于优化 Pass 或分析）
-
-
-关键成员：
-mutable Type checked_type_;  // 类型推断结果（可缓存）
-Span span;                   // 源码位置信息
-
-典型子类：
-
-ConstantNode（常量）
-VarNode（变量）
-CallNode（函数调用）
-FunctionNode（函数定义）
-
-
-
-(6) RelayExpr (include/tvm/ir/expr.h)
-
-继承关系：BaseExpr → RelayExpr
-功能：
-
-通过TVM_DEFINE_OBJECT_REF_METHODS宏定义了对象引用管理、类型转换和节点访问的功能
-
-
-
-(7) ConstantNode (include/tvm/relay/expr.h)
-
-继承关系：RelayExprNode → ConstantNode
-功能：
-
-存储常量数据的节点（具体实现）
-持有 runtime::NDArray 表示常量值
-实现 SEqualReduce 比较常量值是否相等
-实现 SHashReduce 生成哈希值
-
-
-关键成员：
-runtime::NDArray data; // 常量数据（可以是标量或张量）
-
-
-(8) Constant (include/tvm/relay/expr.h)
-
-继承关系：RelayExpr → Constant
-功能：
-
-用户直接使用的常量包装类
-构造函数封装 ConstantNode 的创建
-提供对 data 的安全访问方法
-示例用法：
-NDArray arr = ...;
-Constant c = Constant(arr);  // 创建常量
-Expr expr = c;               // 可隐式转换为基类
-
-
-
-
-有了对基类的功能认识，我们只需要继续了解类似Constant和ConstantNode类的其他主要类实现。"><script type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Posts","item":"https://KDZZZZZZ.github.io/posts/"},{"@type":"ListItem","position":2,"name":"TVM代码库解析：Relay层结构与优化Pass","item":"https://KDZZZZZZ.github.io/posts/tvm%E4%BB%A3%E7%A0%81%E5%BA%93%E8%A7%A3%E6%9E%90relay%E5%B1%82%E7%BB%93%E6%9E%84%E4%B8%8E%E4%BC%98%E5%8C%96pass/"}]}</script><script type=application/ld+json>{"@context":"https://schema.org","@type":"BlogPosting","headline":"TVM代码库解析：Relay层结构与优化Pass","name":"TVM代码库解析：Relay层结构与优化Pass","description":"relay层主要由数据结构类(如Constant)和节点类(如ConstantNode)组成。 下面梳理一下他们的继承链。\nObjectRef → BaseExpr → RelayExpr → Constant\nObject → BaseExprNode → RelayExprNode → ConstantNode\n源代码库中使用了using ExprNode = tvm::RelayExprNode;\n这里先赘述一下上面每个类的的功能：\n(1) Object (include/tvm/runtime/object.h) 功能： TVM 所有对象的基类，提供 引用计数 和 类型系统 支持 实现 RefCount 机制（通过 use_count 成员） 提供 type_index 用于运行时类型识别（RTTI） 关键方法： virtual uint32_t type_index() const; // 类型标识 void IncRef(); // 增加引用计数 void DecRef(); // 减少引用计数 (2) ObjectRef (include/tvm/runtime/object.h) 功能： 所有 对象引用 的基类模板（如 Constant 本质是 ObjectRef\u0026lt;ConstantNode\u0026gt;） 通过智能指针 (ObjectPtr) 管理 Object 子类的生命周期 提供 类型安全转换接口（如 as\u0026lt;T\u0026gt;()） 关键行为： template\u0026lt;typename T\u0026gt; const T* as() const; // 安全类型转换 operator bool() const; // 检查是否非空 (3) BaseExprNode (include/tvm/ir/expr.h) 继承关系：Object → BaseExprNode 功能： 所有 表达式节点 的抽象基类 定义表达式通用接口： 数据类型 (dtype) 源码位置 (span) 虚函数 SEqualReduce（用于结构相等性比较） 关键成员： runtime::DataType dtype; // 数据类型（如 float32） Span span; // 源码位置信息（用于调试） (4) BaseExpr (include/tvm/ir/expr.h) 继承关系：ObjectRef → BaseExpr 功能： 所有 表达式引用 的基类（如 Constant、Var 等） 提供对 BaseExprNode 的通用访问接口 重载运算符（如 operator==）实现表达式比较 (5) RelayExprNode (include/tvm/ir/expr.h) 继承关系：BaseExprNode → RelayExprNode 功能： Relay 表达式体系的节点基类，定义所有高层计算图节点的通用行为 存储 Relay 特有的元数据： 类型信息 (checked_type_): 类型推断后的结果（如 TensorType(shape=[1,3], dtype=float32)） 源码位置 (span): 用于调试和错误定位 实现 结构等价性检查 (SEqualReduce) 和 哈希生成 (SHashReduce) 的虚函数 支持 递归遍历子节点 的接口（用于优化 Pass 或分析） 关键成员： mutable Type checked_type_; // 类型推断结果（可缓存） Span span; // 源码位置信息 典型子类： ConstantNode（常量） VarNode（变量） CallNode（函数调用） FunctionNode（函数定义） (6) RelayExpr (include/tvm/ir/expr.h) 继承关系：BaseExpr → RelayExpr 功能： 通过TVM_DEFINE_OBJECT_REF_METHODS宏定义了对象引用管理、类型转换和节点访问的功能 (7) ConstantNode (include/tvm/relay/expr.h) 继承关系：RelayExprNode → ConstantNode 功能： 存储常量数据的节点（具体实现） 持有 runtime::NDArray 表示常量值 实现 SEqualReduce 比较常量值是否相等 实现 SHashReduce 生成哈希值 关键成员： runtime::NDArray data; // 常量数据（可以是标量或张量） (8) Constant (include/tvm/relay/expr.h) 继承关系：RelayExpr → Constant 功能： 用户直接使用的常量包装类 构造函数封装 ConstantNode 的创建 提供对 data 的安全访问方法 示例用法： NDArray arr = ...; Constant c = Constant(arr); // 创建常量 Expr expr = c; // 可隐式转换为基类 有了对基类的功能认识，我们只需要继续了解类似Constant和ConstantNode类的其他主要类实现。\n","keywords":["TVM","Compiler","Deep Learning"],"articleBody":"relay层主要由数据结构类(如Constant)和节点类(如ConstantNode)组成。 下面梳理一下他们的继承链。\nObjectRef → BaseExpr → RelayExpr → Constant\nObject → BaseExprNode → RelayExprNode → ConstantNode\n源代码库中使用了using ExprNode = tvm::RelayExprNode;\n这里先赘述一下上面每个类的的功能：\n(1) Object (include/tvm/runtime/object.h) 功能： TVM 所有对象的基类，提供 引用计数 和 类型系统 支持 实现 RefCount 机制（通过 use_count 成员） 提供 type_index 用于运行时类型识别（RTTI） 关键方法： virtual uint32_t type_index() const; // 类型标识 void IncRef(); // 增加引用计数 void DecRef(); // 减少引用计数 (2) ObjectRef (include/tvm/runtime/object.h) 功能： 所有 对象引用 的基类模板（如 Constant 本质是 ObjectRef） 通过智能指针 (ObjectPtr) 管理 Object 子类的生命周期 提供 类型安全转换接口（如 as()） 关键行为： template\u003ctypename T\u003e const T* as() const; // 安全类型转换 operator bool() const; // 检查是否非空 (3) BaseExprNode (include/tvm/ir/expr.h) 继承关系：Object → BaseExprNode 功能： 所有 表达式节点 的抽象基类 定义表达式通用接口： 数据类型 (dtype) 源码位置 (span) 虚函数 SEqualReduce（用于结构相等性比较） 关键成员： runtime::DataType dtype; // 数据类型（如 float32） Span span; // 源码位置信息（用于调试） (4) BaseExpr (include/tvm/ir/expr.h) 继承关系：ObjectRef → BaseExpr 功能： 所有 表达式引用 的基类（如 Constant、Var 等） 提供对 BaseExprNode 的通用访问接口 重载运算符（如 operator==）实现表达式比较 (5) RelayExprNode (include/tvm/ir/expr.h) 继承关系：BaseExprNode → RelayExprNode 功能： Relay 表达式体系的节点基类，定义所有高层计算图节点的通用行为 存储 Relay 特有的元数据： 类型信息 (checked_type_): 类型推断后的结果（如 TensorType(shape=[1,3], dtype=float32)） 源码位置 (span): 用于调试和错误定位 实现 结构等价性检查 (SEqualReduce) 和 哈希生成 (SHashReduce) 的虚函数 支持 递归遍历子节点 的接口（用于优化 Pass 或分析） 关键成员： mutable Type checked_type_; // 类型推断结果（可缓存） Span span; // 源码位置信息 典型子类： ConstantNode（常量） VarNode（变量） CallNode（函数调用） FunctionNode（函数定义） (6) RelayExpr (include/tvm/ir/expr.h) 继承关系：BaseExpr → RelayExpr 功能： 通过TVM_DEFINE_OBJECT_REF_METHODS宏定义了对象引用管理、类型转换和节点访问的功能 (7) ConstantNode (include/tvm/relay/expr.h) 继承关系：RelayExprNode → ConstantNode 功能： 存储常量数据的节点（具体实现） 持有 runtime::NDArray 表示常量值 实现 SEqualReduce 比较常量值是否相等 实现 SHashReduce 生成哈希值 关键成员： runtime::NDArray data; // 常量数据（可以是标量或张量） (8) Constant (include/tvm/relay/expr.h) 继承关系：RelayExpr → Constant 功能： 用户直接使用的常量包装类 构造函数封装 ConstantNode 的创建 提供对 data 的安全访问方法 示例用法： NDArray arr = ...; Constant c = Constant(arr); // 创建常量 Expr expr = c; // 可隐式转换为基类 有了对基类的功能认识，我们只需要继续了解类似Constant和ConstantNode类的其他主要类实现。\n2. 数据节点：常量与变量 (1) ConstantNode 继承关系: RelayExprNode → ConstantNode 功能: 存储计算图中的常量数据（如模型权重） 成员变量: runtime::NDArray data; // 数据载体（支持标量、向量、张量） 方法: SEqualReduce: 比较两个 NDArray 是否逐元素相等 SHashReduce: 基于 NDArray 数据生成哈希 包装类: Constant class Constant : public RelayExpr { public: explicit Constant(runtime::NDArray data); const ConstantNode* operator-\u003e() const; }; (2) VarNode 继承关系: RelayExprNode → VarNode 功能: 表示计算图中的变量（输入/中间变量） 成员变量: Id vid; // 变量唯一标识符（如 %x） Type type_annotation; // 显式类型注解（可选） 包装类: Var class Var : public RelayExpr { public: Var(Id vid, Type type_annotation = Type(nullptr)); static Var Create(Id vid, Type type_annotation); // 工厂方法 }; 3. 计算节点：算子与流程控制 (1) CallNode 继承关系: RelayExprNode → CallNode 功能: 表示函数或算子的调用 成员变量: RelayExpr op; // 被调用的函数/算子（可以是Var或Function） Array\u003cRelayExpr\u003e args; // 调用参数列表 Attrs attrs; // 算子属性（如卷积的stride、padding） 包装类: Call class Call : public RelayExpr { public: Call(RelayExpr op, Array\u003cRelayExpr\u003e args, Attrs attrs = Attrs()); }; (2) FunctionNode 继承关系: RelayExprNode → FunctionNode 功能: 定义 Relay 函数（类似 Lambda 表达式） 成员变量: Array\u003cVar\u003e params; // 函数参数列表 RelayExpr body; // 函数体表达式 Type ret_type; // 显式声明的返回类型 包装类: Function class Function : public RelayExpr { public: Function(Array\u003cVar\u003e params, RelayExpr body, Type ret_type); }; (3) IfNode 继承关系: RelayExprNode → IfNode 功能: 条件分支控制流 成员变量: RelayExpr cond; // 条件表达式（需为布尔标量） RelayExpr true_branch; // 条件为真时执行的表达式 RelayExpr false_branch; // 条件为假时执行的表达式 包装类: If class If : public RelayExpr { public: If(RelayExpr cond, RelayExpr true_branch, RelayExpr false_branch); }; 4. 复合结构节点 (1) TupleNode 继承关系: RelayExprNode → TupleNode 功能: 存储多个表达式的元组 成员变量: Array\u003cRelayExpr\u003e fields; // 元组中的元素列表 包装类: Tuple class Tuple : public RelayExpr { public: explicit Tuple(Array\u003cRelayExpr\u003e fields); }; (2) TupleGetItemNode 继承关系: RelayExprNode → TupleGetItemNode 功能: 从元组中按索引取值 成员变量: RelayExpr tuple; // 目标元组 int index; // 索引值（从0开始） 包装类: TupleGetItem class TupleGetItem : public RelayExpr { public: TupleGetItem(RelayExpr tuple, int index); }; (3) LetNode 继承关系: RelayExprNode → LetNode 功能: 绑定局部变量（类似 let-in 表达式） 成员变量: Var var; // 绑定的变量 RelayExpr value; // 变量的值 RelayExpr body; // 变量作用域内的表达式 包装类: Let class Let : public RelayExpr { public: Let(Var var, RelayExpr value, RelayExpr body); }; 节点连接方式 class CallNode : public RelayExprNode { public: RelayExpr op; // 被调用的算子（ObjectRef） Array\u003cRelayExpr\u003e args; // 参数列表（ObjectRef 的容器） }; 这里的Array用来储存上面的一切包装类(如Constant，用来引用节点)。 Array的结构是vector.\nAST示例 // 构建表达式：add(mul(x, 2), y) relay::Var x = relay::Var(\"x\", TensorType({1}, DataType::Float(32))); relay::Var y = relay::Var(\"y\", TensorType({1}, DataType::Float(32))); relay::Constant two = relay::Constant(runtime::NDArray::Scalar(2.0f)); // 节点连接关系： // add_op -\u003e CallNode // ├── op : FunctionRef (指向加法算子) // │ ├── op : FunctionRef (指向乘法算子) // │ ├── args[0]: VarNode (x) // │ └── args[1]: ConstantNode (2) // └── args[1]: VarNode (y) relay::Call mul = relay::Call(mul_op, {x, two}); relay::Call add = relay::Call(add_op, {mul, y}); Pass Pass的结构和继承关系也分为节点类和引用类两支。\n使用PassRegistry全局注册表来管理 Pass。下面依次叙述一下各个类的功能。\nPass继承自ObjectRef是所有引用类的基类\nPassNode继承自Object是所有节点类的基类\nPassContext储存了上下文信息，如优化级别、依赖的Pass、配置等。\nPassInfo储存了Pass的名称、描述、依赖关系等信息。\nSequential引用类\nSequentialNode储存PassInfo和Array，实现了遍历、执行、解析依赖的功能。 在include/tvm/ir/transform.h中定义。\nCreateFunctionPass定义了函数级优化Pass CreateModulePass定义了模块级优化Pass\n","wordCount":"641","inLanguage":"en","datePublished":"2025-01-28T00:00:00+08:00","dateModified":"2025-01-28T00:00:00+08:00","author":{"@type":"Person","name":"Oops"},"mainEntityOfPage":{"@type":"WebPage","@id":"https://KDZZZZZZ.github.io/posts/tvm%E4%BB%A3%E7%A0%81%E5%BA%93%E8%A7%A3%E6%9E%90relay%E5%B1%82%E7%BB%93%E6%9E%84%E4%B8%8E%E4%BC%98%E5%8C%96pass/"},"publisher":{"@type":"Organization","name":"Oops","logo":{"@type":"ImageObject","url":"https://KDZZZZZZ.github.io/favicon.ico"}}}</script></head><body class=dark id=top><script>localStorage.getItem("pref-theme")==="light"&&document.body.classList.remove("dark")</script><header class=header><nav class=nav><div class=logo><a href=https://KDZZZZZZ.github.io/ accesskey=h title="Oops (Alt + H)">Oops</a><div class=logo-switches><button id=theme-toggle accesskey=t title="(Alt + T)"><svg id="moon" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg><svg id="sun" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></button></div></div><ul id=menu><li><a href=https://KDZZZZZZ.github.io/search title="Search (Alt + /)" accesskey=/><span>Search</span></a></li><li><a href=https://KDZZZZZZ.github.io/posts title=Posts><span>Posts</span></a></li><li><a href=https://KDZZZZZZ.github.io/tags title=Tags><span>Tags</span></a></li><li><a href=https://KDZZZZZZ.github.io/about title=About><span>About</span></a></li></ul></nav></header><main class=main><article class=post-single><header class=post-header><div class=breadcrumbs><a href=https://KDZZZZZZ.github.io/>Home</a>&nbsp;»&nbsp;<a href=https://KDZZZZZZ.github.io/posts/>Posts</a></div><h1 class="post-title entry-hint-parent">TVM代码库解析：Relay层结构与优化Pass</h1><div class=post-meta><span title='2025-01-28 00:00:00 +0800 +0800'>January 28, 2025</span>&nbsp;·&nbsp;4 min&nbsp;·&nbsp;641 words&nbsp;·&nbsp;Oops</div></header><div class=post-content><p>relay层主要由数据结构类(如Constant)和节点类(如ConstantNode)组成。
-下面梳理一下他们的继承链。</p><p>ObjectRef → BaseExpr → RelayExpr → Constant</p><p>Object → BaseExprNode → RelayExprNode → ConstantNode</p><blockquote><p>源代码库中使用了<code>using ExprNode = tvm::RelayExprNode;</code></p></blockquote><p>这里先赘述一下上面每个类的的功能：</p><h4 id=1-object-includetvmruntimeobjecth><strong>(1) <code>Object</code> (include/tvm/runtime/object.h)</strong><a hidden class=anchor aria-hidden=true href=#1-object-includetvmruntimeobjecth>#</a></h4><ul><li><strong>功能</strong>：<ul><li>TVM <strong>所有对象的基类</strong>，提供 <strong>引用计数</strong> 和 <strong>类型系统</strong> 支持</li><li>实现 <code>RefCount</code> 机制（通过 <code>use_count</code> 成员）</li><li>提供 <code>type_index</code> 用于运行时类型识别（RTTI）</li></ul></li><li><strong>关键方法</strong>：<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=display:flex><span><span style=color:#66d9ef>virtual</span> <span style=color:#66d9ef>uint32_t</span> <span style=color:#a6e22e>type_index</span>() <span style=color:#66d9ef>const</span>; <span style=color:#75715e>// 类型标识
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>void</span> <span style=color:#a6e22e>IncRef</span>();  <span style=color:#75715e>// 增加引用计数
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>void</span> <span style=color:#a6e22e>DecRef</span>();  <span style=color:#75715e>// 减少引用计数
-</span></span></span></code></pre></div></li></ul><h4 id=2-objectref-includetvmruntimeobjecth><strong>(2) <code>ObjectRef</code> (include/tvm/runtime/object.h)</strong><a hidden class=anchor aria-hidden=true href=#2-objectref-includetvmruntimeobjecth>#</a></h4><ul><li><strong>功能</strong>：<ul><li>所有 <strong>对象引用</strong> 的基类模板（如 <code>Constant</code> 本质是 <code>ObjectRef&lt;ConstantNode></code>）</li><li>通过智能指针 (<code>ObjectPtr</code>) <strong>管理 Object 子类的生命周期</strong></li><li>提供 <strong>类型安全转换接口</strong>（如 <code>as&lt;T>()</code>）</li></ul></li><li><strong>关键行为</strong>：<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=display:flex><span><span style=color:#66d9ef>template</span><span style=color:#f92672>&lt;</span><span style=color:#66d9ef>typename</span> T<span style=color:#f92672>&gt;</span>
-</span></span><span style=display:flex><span><span style=color:#66d9ef>const</span> T<span style=color:#f92672>*</span> as() <span style=color:#66d9ef>const</span>; <span style=color:#75715e>// 安全类型转换
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>operator</span> <span style=color:#a6e22e>bool</span>() <span style=color:#66d9ef>const</span>; <span style=color:#75715e>// 检查是否非空
-</span></span></span></code></pre></div></li></ul><h4 id=3-baseexprnode-includetvmirexprh><strong>(3) <code>BaseExprNode</code> (include/tvm/ir/expr.h)</strong><a hidden class=anchor aria-hidden=true href=#3-baseexprnode-includetvmirexprh>#</a></h4><ul><li><strong>继承关系</strong>：<code>Object</code> → <code>BaseExprNode</code></li><li><strong>功能</strong>：<ul><li>所有 <strong>表达式节点</strong> 的抽象基类</li><li>定义表达式通用接口：<ul><li>数据类型 (<code>dtype</code>)</li><li>源码位置 (<code>span</code>)</li><li>虚函数 <code>SEqualReduce</code>（用于结构相等性比较）</li></ul></li></ul></li><li><strong>关键成员</strong>：<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=display:flex><span>runtime<span style=color:#f92672>::</span>DataType dtype; <span style=color:#75715e>// 数据类型（如 float32）
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>Span span;               <span style=color:#75715e>// 源码位置信息（用于调试）
-</span></span></span></code></pre></div></li></ul><h4 id=4-baseexpr-includetvmirexprh><strong>(4) <code>BaseExpr</code> (include/tvm/ir/expr.h)</strong><a hidden class=anchor aria-hidden=true href=#4-baseexpr-includetvmirexprh>#</a></h4><ul><li><strong>继承关系</strong>：<code>ObjectRef</code> → <code>BaseExpr</code></li><li><strong>功能</strong>：<ul><li>所有 <strong>表达式引用</strong> 的基类（如 <code>Constant</code>、<code>Var</code> 等）</li><li>提供对 <code>BaseExprNode</code> 的通用访问接口</li><li>重载运算符（如 <code>operator==</code>）实现表达式比较</li></ul></li></ul><h4 id=5-relayexprnode-includetvmirexprh><strong>(5) <code>RelayExprNode</code> (include/tvm/ir/expr.h)</strong><a hidden class=anchor aria-hidden=true href=#5-relayexprnode-includetvmirexprh>#</a></h4><ul><li><strong>继承关系</strong>：<code>BaseExprNode</code> → <code>RelayExprNode</code></li><li><strong>功能</strong>：<ul><li><strong>Relay 表达式体系的节点基类</strong>，定义所有高层计算图节点的通用行为</li><li>存储 Relay 特有的元数据：<ul><li><strong>类型信息</strong> (<code>checked_type_</code>): 类型推断后的结果（如 <code>TensorType(shape=[1,3], dtype=float32)</code>）</li><li><strong>源码位置</strong> (<code>span</code>): 用于调试和错误定位</li></ul></li><li>实现 <strong>结构等价性检查</strong> (<code>SEqualReduce</code>) 和 <strong>哈希生成</strong> (<code>SHashReduce</code>) 的虚函数</li><li>支持 <strong>递归遍历子节点</strong> 的接口（用于优化 Pass 或分析）</li></ul></li><li><strong>关键成员</strong>：<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=display:flex><span><span style=color:#66d9ef>mutable</span> Type checked_type_;  <span style=color:#75715e>// 类型推断结果（可缓存）
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>Span span;                   <span style=color:#75715e>// 源码位置信息
-</span></span></span></code></pre></div></li><li><strong>典型子类</strong>：<ul><li><code>ConstantNode</code>（常量）</li><li><code>VarNode</code>（变量）</li><li><code>CallNode</code>（函数调用）</li><li><code>FunctionNode</code>（函数定义）</li></ul></li></ul><h4 id=6-relayexpr-includetvmirexprh><strong>(6) <code>RelayExpr</code> (include/tvm/ir/expr.h)</strong><a hidden class=anchor aria-hidden=true href=#6-relayexpr-includetvmirexprh>#</a></h4><ul><li><strong>继承关系</strong>：<code>BaseExpr</code> → <code>RelayExpr</code></li><li><strong>功能</strong>：<ul><li>通过<code>TVM_DEFINE_OBJECT_REF_METHODS</code>宏定义了对象引用管理、类型转换和节点访问的功能</li></ul></li></ul><h4 id=7-constantnode-includetvmrelayexprh><strong>(7) <code>ConstantNode</code> (include/tvm/relay/expr.h)</strong><a hidden class=anchor aria-hidden=true href=#7-constantnode-includetvmrelayexprh>#</a></h4><ul><li><strong>继承关系</strong>：<code>RelayExprNode</code> → <code>ConstantNode</code></li><li><strong>功能</strong>：<ul><li><strong>存储常量数据的节点</strong>（具体实现）</li><li>持有 <code>runtime::NDArray</code> 表示常量值</li><li>实现 <code>SEqualReduce</code> 比较常量值是否相等</li><li>实现 <code>SHashReduce</code> 生成哈希值</li></ul></li><li><strong>关键成员</strong>：<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=display:flex><span>runtime<span style=color:#f92672>::</span>NDArray data; <span style=color:#75715e>// 常量数据（可以是标量或张量）
-</span></span></span></code></pre></div></li></ul><h4 id=8-constant-includetvmrelayexprh><strong>(8) <code>Constant</code> (include/tvm/relay/expr.h)</strong><a hidden class=anchor aria-hidden=true href=#8-constant-includetvmrelayexprh>#</a></h4><ul><li><strong>继承关系</strong>：<code>RelayExpr</code> → <code>Constant</code></li><li><strong>功能</strong>：<ul><li><strong>用户直接使用的常量包装类</strong></li><li>构造函数封装 <code>ConstantNode</code> 的创建</li><li>提供对 <code>data</code> 的安全访问方法</li><li>示例用法：<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=display:flex><span>NDArray arr <span style=color:#f92672>=</span> ...;
-</span></span><span style=display:flex><span>Constant c <span style=color:#f92672>=</span> Constant(arr);  <span style=color:#75715e>// 创建常量
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>Expr expr <span style=color:#f92672>=</span> c;               <span style=color:#75715e>// 可隐式转换为基类
-</span></span></span></code></pre></div></li></ul></li></ul><p>有了对基类的功能认识，我们只需要继续了解类似<code>Constant</code>和<code>ConstantNode</code>类的其他主要类实现。</p><h3 id=2-数据节点常量与变量><strong>2. 数据节点：常量与变量</strong><a hidden class=anchor aria-hidden=true href=#2-数据节点常量与变量>#</a></h3><h4 id=1-constantnode><strong>(1) <code>ConstantNode</code></strong><a hidden class=anchor aria-hidden=true href=#1-constantnode>#</a></h4><ul><li><strong>继承关系</strong>: <code>RelayExprNode</code> → <code>ConstantNode</code></li><li><strong>功能</strong>: 存储计算图中的常量数据（如模型权重）</li><li><strong>成员变量</strong>:<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=display:flex><span>runtime<span style=color:#f92672>::</span>NDArray data; <span style=color:#75715e>// 数据载体（支持标量、向量、张量）
-</span></span></span></code></pre></div></li><li><strong>方法</strong>:<ul><li><code>SEqualReduce</code>: 比较两个 NDArray 是否逐元素相等</li><li><code>SHashReduce</code>: 基于 NDArray 数据生成哈希</li></ul></li><li><strong>包装类</strong>: <code>Constant</code><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=display:flex><span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>Constant</span> <span style=color:#f92672>:</span> <span style=color:#66d9ef>public</span> RelayExpr {
-</span></span><span style=display:flex><span> <span style=color:#66d9ef>public</span><span style=color:#f92672>:</span>
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>explicit</span> Constant(runtime<span style=color:#f92672>::</span>NDArray data);
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>const</span> ConstantNode<span style=color:#f92672>*</span> <span style=color:#66d9ef>operator</span><span style=color:#f92672>-&gt;</span>() <span style=color:#66d9ef>const</span>;
+<!doctype html><html lang=en><head><meta charset=UTF-8><meta name=viewport content="width=device-width,initial-scale=1"><title>TVM代码库解析：Relay层结构与优化Pass | OOPS.BLOG</title><script src="https://cdn.tailwindcss.com?plugins=typography"></script><script src=/js/highlighter.js defer></script><script>tailwind.config={darkMode:"class",theme:{extend:{keyframes:{"gradient-x":{"0%, 100%":{"background-size":"200% 200%","background-position":"left center"},"50%":{"background-size":"200% 200%","background-position":"right center"}}},animation:{"gradient-x":"gradient-x 3s ease infinite"},typography:{DEFAULT:{css:{maxWidth:"none",color:"#334155",a:{color:"#22d3ee","&:hover":{color:"#a855f7"}},h1:{display:"none"},h2:{color:"#0f172a",fontWeight:"700",marginTop:"2em",marginBottom:"1em"},code:{color:"#ffffff",backgroundImage:"linear-gradient(to right, #ec4899, #a855f7, #3b82f6)",backgroundSize:"200% auto",animation:"gradient-x 3s ease infinite",borderRadius:"0.25rem",padding:"0.2em 0.4em",fontWeight:"600",textDecoration:"none",boxShadow:"0 2px 4px rgba(0,0,0,0.1)"},"code::before":{content:'""'},"code::after":{content:'""'},pre:{backgroundColor:"rgba(30, 41, 59, 0.9)",backdropFilter:"blur(12px)",border:"1px solid rgba(255, 255, 255, 0.1)",color:"#f8fafc",borderRadius:"1rem",boxShadow:"0 10px 15px -3px rgba(0, 0, 0, 0.2)",padding:"1.5rem"},"pre code":{backgroundColor:"transparent",backgroundImage:"none",animation:"none",color:"inherit",padding:"0",boxShadow:"none",fontWeight:"400",fontSize:"0.9em"}}}}}}}</script><style>.prose pre{background-color:rgba(255,255,255,.6)!important;backdrop-filter:blur(12px);color:#1e293b!important;border:1px solid rgba(0,0,0,.1);border-radius:1rem;box-shadow:0 10px 15px -3px rgba(0,0,0,5%);padding:1.5rem}.prose pre code{background-color:initial!important;color:inherit!important;font-weight:400}.gradient-text{background-clip:text;-webkit-background-clip:text;color:transparent;background-image:linear-gradient(to right,#22d3ee,#a855f7,#4ade80)}.katex{background-clip:text!important;-webkit-background-clip:text!important;color:transparent!important;background-image:linear-gradient(to right,#ec4899,#a855f7,#3b82f6)!important;background-size:200%;animation:gradient-x 3s ease infinite}.katex *{color:inherit!important;border-color:initial!important}.katex .katex-html{background-clip:text!important;-webkit-background-clip:text!important}.glass-card{background:rgba(255,255,255,.7);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.5)}.wavy-line{background-image:url("data:image/svg+xml,%3Csvg width='40' height='1000' viewBox='0 0 40 1000' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 0C20 50 35 50 35 100C35 150 5 150 5 200C5 250 20 250 20 300C20 350 35 350 35 400C35 450 5 450 5 500C5 550 20 550 20 600C20 650 35 650 35 700C35 750 5 750 5 800C5 850 20 850 20 900' stroke='url(%23paint0_linear)' stroke-width='4' stroke-linecap='round'/%3E%3Cdefs%3E%3ClinearGradient id='paint0_linear' x1='20' y1='0' x2='20' y2='1000' gradientUnits='userSpaceOnUse'%3E%3Cstop stop-color='%2322D3EE'/%3E%3Cstop offset='0.5' stop-color='%23E879F9'/%3E%3Cstop offset='1' stop-color='%234ADE80'/%3E%3C/linearGradient%3E%3C/defs%3E%3C/svg%3E");background-repeat:repeat-y;width:40px;height:100%}body{cursor:url("data:image/svg+xml,%3Csvg width='32' height='32' viewBox='0 0 32 32' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M5.5 3.5L19 16.5L11.5 17.5L9.5 23.5L5.5 3.5Z' fill='black' stroke='white' stroke-width='2' stroke-linejoin='round'/%3E%3C/svg%3E"),auto}.background-curves{position:fixed;inset:0;z-index:-10;pointer-events:none;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 1200 1200' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cfilter id='blur' x='-50%25' y='-50%25' width='200%25' height='200%25'%3E%3CfeGaussianBlur in='SourceGraphic' stdDeviation='50'/%3E%3C/filter%3E%3C/defs%3E%3Cg filter='url(%23blur)' opacity='0.6'%3E%3Cpath d='M-100,200 C200,50 500,500 900,100' stroke='rgba(34,211,238,0.6)' stroke-width='100' fill='none'/%3E%3Cpath d='M-100,500 C300,300 600,800 1300,400' stroke='rgba(232,121,249,0.6)' stroke-width='100' fill='none'/%3E%3Cpath d='M200,-100 C400,400 900,200 1100,600' stroke='rgba(74,222,128,0.6)' stroke-width='100' fill='none'/%3E%3Cpath d='M1300,800 C900,1000 500,600 100,1100' stroke='rgba(167,139,250,0.6)' stroke-width='100' fill='none'/%3E%3C/g%3E%3C/svg%3E");background-size:cover;background-position:50%}.prose :not(pre)>code{position:relative;display:inline-block;padding:2px 6px;margin:0 2px;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:.9em;border-radius:4px;color:#334155;background:0 0;overflow:hidden;vertical-align:baseline}.prose :not(pre)>code::before{content:'';position:absolute;inset:0;background:linear-gradient(120deg,rgba(34,211,238,.2),rgba(167,139,250,.2),rgba(232,121,249,.2),rgba(34,211,238,.2) );background-size:300% 300%;animation:sea-flow 6s ease infinite;z-index:-1}.prose :not(pre)>code::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#22d3ee,#e879f9,#4ade80,#22d3ee);background-size:200% 100%;animation:sea-wave-border 3s linear infinite;opacity:.8}@keyframes sea-flow{0%{background-position:0}50%{background-position:100%}100%{background-position:0}}@keyframes sea-wave-border{0%{background-position:0 0}100%{background-position:200% 0}}.grain-overlay{position:fixed;inset:0;z-index:-11;pointer-events:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='128' height='128'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");opacity:.6;mix-blend-mode:soft-light}</style></head><body class="bg-[#FDFDFD] dark:bg-slate-900 text-slate-900 dark:text-white font-sans min-h-screen flex flex-col transition-colors duration-1000"><div class=background-curves></div><div class=grain-overlay></div><header class="w-full p-8 flex justify-between items-center z-50"><div class="flex items-center gap-2 group cursor-pointer" onclick='window.location.href="/"'><div class="w-3 h-3 rounded-full bg-black animate-pulse group-hover:bg-gradient-to-r group-hover:from-cyan-400 group-hover:to-purple-400"></div><span class="font-bold text-xl tracking-tight text-slate-800 dark:text-white group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-cyan-400 group-hover:via-purple-400 group-hover:to-green-400 transition-all duration-300">OOPS.BLOG</span></div><div class="flex items-center gap-8"><nav class="hidden md:flex gap-8 text-sm font-medium text-slate-400 dark:text-slate-400"><a href=/ class="hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-cyan-400 hover:to-purple-400 transition-colors">Home</a>
+<a href=/about class="hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-purple-400 hover:to-pink-400 transition-colors">About</a>
+<a href=/posts class="hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-green-400 hover:to-cyan-400 transition-colors">Blogs</a>
+<a href=/contact class="hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-pink-400 hover:to-orange-400 transition-colors">Contact</a></nav><button id=theme-toggle class="text-slate-400 hover:text-slate-800 dark:hover:text-white transition-colors" aria-label="Toggle Dark Mode">
+<svg id="theme-icon-moon" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003.0 0012 21a9.003 9.003.0 008.354-5.646z"/></svg>
+<svg id="theme-icon-sun" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364-.707-.707M6.343 6.343l-.707-.707m12.728.0-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg></button></div></header><main class="flex-grow container mx-auto px-6 py-12 max-w-7xl relative"><div class="absolute top-0 left-1/4 w-96 h-96 bg-cyan-300/20 rounded-full blur-3xl -z-10 mix-blend-multiply animate-blob"></div><div class="absolute top-0 right-1/4 w-96 h-96 bg-purple-300/20 rounded-full blur-3xl -z-10 mix-blend-multiply animate-blob animation-delay-2000"></div><div class="absolute bottom-0 left-1/3 w-96 h-96 bg-pink-300/20 rounded-full blur-3xl -z-10 mix-blend-multiply animate-blob animation-delay-4000"></div><div class="mb-16 relative"><div class="absolute -bottom-8 left-0 w-full h-[1px] bg-gradient-to-r from-cyan-200 via-purple-200 to-transparent"></div><h1 class="text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter leading-[0.9] uppercase"><span class="block text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-purple-400 to-green-400 drop-shadow-sm">TVM代码库解析：Relay层结构与优化Pass</span></h1></div><div class="grid grid-cols-1 lg:grid-cols-12 gap-12 relative"><div class="lg:col-span-12 max-w-4xl mx-auto"><article class="prose prose-lg max-w-none dark:prose-invert dark:prose-headings:text-white dark:prose-p:text-white dark:prose-li:text-white dark:prose-strong:text-white dark:prose-code:text-white"><p>relay层主要由数据结构类(如Constant)和节点类(如ConstantNode)组成。
+下面梳理一下他们的继承链。</p><p>ObjectRef → BaseExpr → RelayExpr → Constant</p><p>Object → BaseExprNode → RelayExprNode → ConstantNode</p><blockquote><p>源代码库中使用了<code>using ExprNode = tvm::RelayExprNode;</code></p></blockquote><p>这里先赘述一下上面每个类的的功能：</p><h4 id=1><strong>(1) <code>Object</code> (include/tvm/runtime/object.h)</strong></h4><ul><li><strong>功能</strong>：<ul><li>TVM <strong>所有对象的基类</strong>，提供 <strong>引用计数</strong> 和 <strong>类型系统</strong> 支持</li><li>实现 <code>RefCount</code> 机制（通过 <code>use_count</code> 成员）</li><li>提供 <code>type_index</code> 用于运行时类型识别（RTTI）</li></ul></li><li><strong>关键方法</strong>：<div class=highlight><pre tabindex=0 style=background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=display:flex><span><span style=color:#007020;font-weight:700>virtual</span> <span style=color:#902000>uint32_t</span> <span style=color:#06287e>type_index</span>() <span style=color:#007020;font-weight:700>const</span>; <span style=color:#60a0b0;font-style:italic>// 类型标识
+</span></span></span><span style=display:flex><span><span style=color:#60a0b0;font-style:italic></span><span style=color:#902000>void</span> <span style=color:#06287e>IncRef</span>();  <span style=color:#60a0b0;font-style:italic>// 增加引用计数
+</span></span></span><span style=display:flex><span><span style=color:#60a0b0;font-style:italic></span><span style=color:#902000>void</span> <span style=color:#06287e>DecRef</span>();  <span style=color:#60a0b0;font-style:italic>// 减少引用计数
+</span></span></span></code></pre></div></li></ul><h4 id=2><strong>(2) <code>ObjectRef</code> (include/tvm/runtime/object.h)</strong></h4><ul><li><strong>功能</strong>：<ul><li>所有 <strong>对象引用</strong> 的基类模板（如 <code>Constant</code> 本质是 <code>ObjectRef&lt;ConstantNode></code>）</li><li>通过智能指针 (<code>ObjectPtr</code>) <strong>管理 Object 子类的生命周期</strong></li><li>提供 <strong>类型安全转换接口</strong>（如 <code>as&lt;T>()</code>）</li></ul></li><li><strong>关键行为</strong>：<div class=highlight><pre tabindex=0 style=background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=display:flex><span><span style=color:#007020;font-weight:700>template</span><span style=color:#666>&lt;</span><span style=color:#007020;font-weight:700>typename</span> T<span style=color:#666>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#007020;font-weight:700>const</span> T<span style=color:#666>*</span> as() <span style=color:#007020;font-weight:700>const</span>; <span style=color:#60a0b0;font-style:italic>// 安全类型转换
+</span></span></span><span style=display:flex><span><span style=color:#60a0b0;font-style:italic></span><span style=color:#007020;font-weight:700>operator</span> <span style=color:#06287e>bool</span>() <span style=color:#007020;font-weight:700>const</span>; <span style=color:#60a0b0;font-style:italic>// 检查是否非空
+</span></span></span></code></pre></div></li></ul><h4 id=3><strong>(3) <code>BaseExprNode</code> (include/tvm/ir/expr.h)</strong></h4><ul><li><strong>继承关系</strong>：<code>Object</code> → <code>BaseExprNode</code></li><li><strong>功能</strong>：<ul><li>所有 <strong>表达式节点</strong> 的抽象基类</li><li>定义表达式通用接口：<ul><li>数据类型 (<code>dtype</code>)</li><li>源码位置 (<code>span</code>)</li><li>虚函数 <code>SEqualReduce</code>（用于结构相等性比较）</li></ul></li></ul></li><li><strong>关键成员</strong>：<div class=highlight><pre tabindex=0 style=background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=display:flex><span>runtime<span style=color:#666>::</span>DataType dtype; <span style=color:#60a0b0;font-style:italic>// 数据类型（如 float32）
+</span></span></span><span style=display:flex><span><span style=color:#60a0b0;font-style:italic></span>Span span;               <span style=color:#60a0b0;font-style:italic>// 源码位置信息（用于调试）
+</span></span></span></code></pre></div></li></ul><h4 id=4><strong>(4) <code>BaseExpr</code> (include/tvm/ir/expr.h)</strong></h4><ul><li><strong>继承关系</strong>：<code>ObjectRef</code> → <code>BaseExpr</code></li><li><strong>功能</strong>：<ul><li>所有 <strong>表达式引用</strong> 的基类（如 <code>Constant</code>、<code>Var</code> 等）</li><li>提供对 <code>BaseExprNode</code> 的通用访问接口</li><li>重载运算符（如 <code>operator==</code>）实现表达式比较</li></ul></li></ul><h4 id=5><strong>(5) <code>RelayExprNode</code> (include/tvm/ir/expr.h)</strong></h4><ul><li><strong>继承关系</strong>：<code>BaseExprNode</code> → <code>RelayExprNode</code></li><li><strong>功能</strong>：<ul><li><strong>Relay 表达式体系的节点基类</strong>，定义所有高层计算图节点的通用行为</li><li>存储 Relay 特有的元数据：<ul><li><strong>类型信息</strong> (<code>checked_type_</code>): 类型推断后的结果（如 <code>TensorType(shape=[1,3], dtype=float32)</code>）</li><li><strong>源码位置</strong> (<code>span</code>): 用于调试和错误定位</li></ul></li><li>实现 <strong>结构等价性检查</strong> (<code>SEqualReduce</code>) 和 <strong>哈希生成</strong> (<code>SHashReduce</code>) 的虚函数</li><li>支持 <strong>递归遍历子节点</strong> 的接口（用于优化 Pass 或分析）</li></ul></li><li><strong>关键成员</strong>：<div class=highlight><pre tabindex=0 style=background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=display:flex><span><span style=color:#007020;font-weight:700>mutable</span> Type checked_type_;  <span style=color:#60a0b0;font-style:italic>// 类型推断结果（可缓存）
+</span></span></span><span style=display:flex><span><span style=color:#60a0b0;font-style:italic></span>Span span;                   <span style=color:#60a0b0;font-style:italic>// 源码位置信息
+</span></span></span></code></pre></div></li><li><strong>典型子类</strong>：<ul><li><code>ConstantNode</code>（常量）</li><li><code>VarNode</code>（变量）</li><li><code>CallNode</code>（函数调用）</li><li><code>FunctionNode</code>（函数定义）</li></ul></li></ul><h4 id=6><strong>(6) <code>RelayExpr</code> (include/tvm/ir/expr.h)</strong></h4><ul><li><strong>继承关系</strong>：<code>BaseExpr</code> → <code>RelayExpr</code></li><li><strong>功能</strong>：<ul><li>通过<code>TVM_DEFINE_OBJECT_REF_METHODS</code>宏定义了对象引用管理、类型转换和节点访问的功能</li></ul></li></ul><h4 id=7><strong>(7) <code>ConstantNode</code> (include/tvm/relay/expr.h)</strong></h4><ul><li><strong>继承关系</strong>：<code>RelayExprNode</code> → <code>ConstantNode</code></li><li><strong>功能</strong>：<ul><li><strong>存储常量数据的节点</strong>（具体实现）</li><li>持有 <code>runtime::NDArray</code> 表示常量值</li><li>实现 <code>SEqualReduce</code> 比较常量值是否相等</li><li>实现 <code>SHashReduce</code> 生成哈希值</li></ul></li><li><strong>关键成员</strong>：<div class=highlight><pre tabindex=0 style=background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=display:flex><span>runtime<span style=color:#666>::</span>NDArray data; <span style=color:#60a0b0;font-style:italic>// 常量数据（可以是标量或张量）
+</span></span></span></code></pre></div></li></ul><h4 id=8><strong>(8) <code>Constant</code> (include/tvm/relay/expr.h)</strong></h4><ul><li><strong>继承关系</strong>：<code>RelayExpr</code> → <code>Constant</code></li><li><strong>功能</strong>：<ul><li><strong>用户直接使用的常量包装类</strong></li><li>构造函数封装 <code>ConstantNode</code> 的创建</li><li>提供对 <code>data</code> 的安全访问方法</li><li>示例用法：<div class=highlight><pre tabindex=0 style=background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=display:flex><span>NDArray arr <span style=color:#666>=</span> ...;
+</span></span><span style=display:flex><span>Constant c <span style=color:#666>=</span> Constant(arr);  <span style=color:#60a0b0;font-style:italic>// 创建常量
+</span></span></span><span style=display:flex><span><span style=color:#60a0b0;font-style:italic></span>Expr expr <span style=color:#666>=</span> c;               <span style=color:#60a0b0;font-style:italic>// 可隐式转换为基类
+</span></span></span></code></pre></div></li></ul></li></ul><p>有了对基类的功能认识，我们只需要继续了解类似<code>Constant</code>和<code>ConstantNode</code>类的其他主要类实现。</p><h3 id=2-数据节点常量与变量><strong>2. 数据节点：常量与变量</strong></h3><h4 id=1-1><strong>(1) <code>ConstantNode</code></strong></h4><ul><li><strong>继承关系</strong>: <code>RelayExprNode</code> → <code>ConstantNode</code></li><li><strong>功能</strong>: 存储计算图中的常量数据（如模型权重）</li><li><strong>成员变量</strong>:<div class=highlight><pre tabindex=0 style=background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=display:flex><span>runtime<span style=color:#666>::</span>NDArray data; <span style=color:#60a0b0;font-style:italic>// 数据载体（支持标量、向量、张量）
+</span></span></span></code></pre></div></li><li><strong>方法</strong>:<ul><li><code>SEqualReduce</code>: 比较两个 NDArray 是否逐元素相等</li><li><code>SHashReduce</code>: 基于 NDArray 数据生成哈希</li></ul></li><li><strong>包装类</strong>: <code>Constant</code><div class=highlight><pre tabindex=0 style=background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=display:flex><span><span style=color:#007020;font-weight:700>class</span> <span style=color:#0e84b5;font-weight:700>Constant</span> <span style=color:#666>:</span> <span style=color:#007020;font-weight:700>public</span> RelayExpr {
+</span></span><span style=display:flex><span> <span style=color:#007020;font-weight:700>public</span><span style=color:#666>:</span>
+</span></span><span style=display:flex><span>  <span style=color:#007020;font-weight:700>explicit</span> Constant(runtime<span style=color:#666>::</span>NDArray data);
+</span></span><span style=display:flex><span>  <span style=color:#007020;font-weight:700>const</span> ConstantNode<span style=color:#666>*</span> <span style=color:#007020;font-weight:700>operator</span><span style=color:#666>-&gt;</span>() <span style=color:#007020;font-weight:700>const</span>;
 </span></span><span style=display:flex><span>};
-</span></span></code></pre></div></li></ul><h4 id=2-varnode><strong>(2) <code>VarNode</code></strong><a hidden class=anchor aria-hidden=true href=#2-varnode>#</a></h4><ul><li><strong>继承关系</strong>: <code>RelayExprNode</code> → <code>VarNode</code></li><li><strong>功能</strong>: 表示计算图中的变量（输入/中间变量）</li><li><strong>成员变量</strong>:<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=display:flex><span>Id vid;                  <span style=color:#75715e>// 变量唯一标识符（如 %x）
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>Type type_annotation;    <span style=color:#75715e>// 显式类型注解（可选）
-</span></span></span></code></pre></div></li><li><strong>包装类</strong>: <code>Var</code><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=display:flex><span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>Var</span> <span style=color:#f92672>:</span> <span style=color:#66d9ef>public</span> RelayExpr {
-</span></span><span style=display:flex><span> <span style=color:#66d9ef>public</span><span style=color:#f92672>:</span>
-</span></span><span style=display:flex><span>  Var(Id vid, Type type_annotation <span style=color:#f92672>=</span> Type(<span style=color:#66d9ef>nullptr</span>));
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>static</span> Var <span style=color:#a6e22e>Create</span>(Id vid, Type type_annotation); <span style=color:#75715e>// 工厂方法
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>};
-</span></span></code></pre></div></li></ul><hr><h3 id=3-计算节点算子与流程控制><strong>3. 计算节点：算子与流程控制</strong><a hidden class=anchor aria-hidden=true href=#3-计算节点算子与流程控制>#</a></h3><h4 id=1-callnode><strong>(1) <code>CallNode</code></strong><a hidden class=anchor aria-hidden=true href=#1-callnode>#</a></h4><ul><li><strong>继承关系</strong>: <code>RelayExprNode</code> → <code>CallNode</code></li><li><strong>功能</strong>: 表示函数或算子的调用</li><li><strong>成员变量</strong>:<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=display:flex><span>RelayExpr op;             <span style=color:#75715e>// 被调用的函数/算子（可以是Var或Function）
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>Array<span style=color:#f92672>&lt;</span>RelayExpr<span style=color:#f92672>&gt;</span> args;    <span style=color:#75715e>// 调用参数列表
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>Attrs attrs;              <span style=color:#75715e>// 算子属性（如卷积的stride、padding）
-</span></span></span></code></pre></div></li><li><strong>包装类</strong>: <code>Call</code><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=display:flex><span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>Call</span> <span style=color:#f92672>:</span> <span style=color:#66d9ef>public</span> RelayExpr {
-</span></span><span style=display:flex><span> <span style=color:#66d9ef>public</span><span style=color:#f92672>:</span>
-</span></span><span style=display:flex><span>  Call(RelayExpr op, Array<span style=color:#f92672>&lt;</span>RelayExpr<span style=color:#f92672>&gt;</span> args, Attrs attrs <span style=color:#f92672>=</span> Attrs());
+</span></span></code></pre></div></li></ul><h4 id=2-1><strong>(2) <code>VarNode</code></strong></h4><ul><li><strong>继承关系</strong>: <code>RelayExprNode</code> → <code>VarNode</code></li><li><strong>功能</strong>: 表示计算图中的变量（输入/中间变量）</li><li><strong>成员变量</strong>:<div class=highlight><pre tabindex=0 style=background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=display:flex><span>Id vid;                  <span style=color:#60a0b0;font-style:italic>// 变量唯一标识符（如 %x）
+</span></span></span><span style=display:flex><span><span style=color:#60a0b0;font-style:italic></span>Type type_annotation;    <span style=color:#60a0b0;font-style:italic>// 显式类型注解（可选）
+</span></span></span></code></pre></div></li><li><strong>包装类</strong>: <code>Var</code><div class=highlight><pre tabindex=0 style=background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=display:flex><span><span style=color:#007020;font-weight:700>class</span> <span style=color:#0e84b5;font-weight:700>Var</span> <span style=color:#666>:</span> <span style=color:#007020;font-weight:700>public</span> RelayExpr {
+</span></span><span style=display:flex><span> <span style=color:#007020;font-weight:700>public</span><span style=color:#666>:</span>
+</span></span><span style=display:flex><span>  Var(Id vid, Type type_annotation <span style=color:#666>=</span> Type(<span style=color:#007020;font-weight:700>nullptr</span>));
+</span></span><span style=display:flex><span>  <span style=color:#007020;font-weight:700>static</span> Var <span style=color:#06287e>Create</span>(Id vid, Type type_annotation); <span style=color:#60a0b0;font-style:italic>// 工厂方法
+</span></span></span><span style=display:flex><span><span style=color:#60a0b0;font-style:italic></span>};
+</span></span></code></pre></div></li></ul><hr><h3 id=3-计算节点算子与流程控制><strong>3. 计算节点：算子与流程控制</strong></h3><h4 id=1-2><strong>(1) <code>CallNode</code></strong></h4><ul><li><strong>继承关系</strong>: <code>RelayExprNode</code> → <code>CallNode</code></li><li><strong>功能</strong>: 表示函数或算子的调用</li><li><strong>成员变量</strong>:<div class=highlight><pre tabindex=0 style=background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=display:flex><span>RelayExpr op;             <span style=color:#60a0b0;font-style:italic>// 被调用的函数/算子（可以是Var或Function）
+</span></span></span><span style=display:flex><span><span style=color:#60a0b0;font-style:italic></span>Array<span style=color:#666>&lt;</span>RelayExpr<span style=color:#666>&gt;</span> args;    <span style=color:#60a0b0;font-style:italic>// 调用参数列表
+</span></span></span><span style=display:flex><span><span style=color:#60a0b0;font-style:italic></span>Attrs attrs;              <span style=color:#60a0b0;font-style:italic>// 算子属性（如卷积的stride、padding）
+</span></span></span></code></pre></div></li><li><strong>包装类</strong>: <code>Call</code><div class=highlight><pre tabindex=0 style=background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=display:flex><span><span style=color:#007020;font-weight:700>class</span> <span style=color:#0e84b5;font-weight:700>Call</span> <span style=color:#666>:</span> <span style=color:#007020;font-weight:700>public</span> RelayExpr {
+</span></span><span style=display:flex><span> <span style=color:#007020;font-weight:700>public</span><span style=color:#666>:</span>
+</span></span><span style=display:flex><span>  Call(RelayExpr op, Array<span style=color:#666>&lt;</span>RelayExpr<span style=color:#666>&gt;</span> args, Attrs attrs <span style=color:#666>=</span> Attrs());
 </span></span><span style=display:flex><span>};
-</span></span></code></pre></div></li></ul><h4 id=2-functionnode><strong>(2) <code>FunctionNode</code></strong><a hidden class=anchor aria-hidden=true href=#2-functionnode>#</a></h4><ul><li><strong>继承关系</strong>: <code>RelayExprNode</code> → <code>FunctionNode</code></li><li><strong>功能</strong>: 定义 Relay 函数（类似 Lambda 表达式）</li><li><strong>成员变量</strong>:<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=display:flex><span>Array<span style=color:#f92672>&lt;</span>Var<span style=color:#f92672>&gt;</span> params;      <span style=color:#75715e>// 函数参数列表
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>RelayExpr body;         <span style=color:#75715e>// 函数体表达式
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>Type ret_type;          <span style=color:#75715e>// 显式声明的返回类型
-</span></span></span></code></pre></div></li><li><strong>包装类</strong>: <code>Function</code><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=display:flex><span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>Function</span> <span style=color:#f92672>:</span> <span style=color:#66d9ef>public</span> RelayExpr {
-</span></span><span style=display:flex><span> <span style=color:#66d9ef>public</span><span style=color:#f92672>:</span>
-</span></span><span style=display:flex><span>  Function(Array<span style=color:#f92672>&lt;</span>Var<span style=color:#f92672>&gt;</span> params, RelayExpr body, Type ret_type);
+</span></span></code></pre></div></li></ul><h4 id=2-2><strong>(2) <code>FunctionNode</code></strong></h4><ul><li><strong>继承关系</strong>: <code>RelayExprNode</code> → <code>FunctionNode</code></li><li><strong>功能</strong>: 定义 Relay 函数（类似 Lambda 表达式）</li><li><strong>成员变量</strong>:<div class=highlight><pre tabindex=0 style=background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=display:flex><span>Array<span style=color:#666>&lt;</span>Var<span style=color:#666>&gt;</span> params;      <span style=color:#60a0b0;font-style:italic>// 函数参数列表
+</span></span></span><span style=display:flex><span><span style=color:#60a0b0;font-style:italic></span>RelayExpr body;         <span style=color:#60a0b0;font-style:italic>// 函数体表达式
+</span></span></span><span style=display:flex><span><span style=color:#60a0b0;font-style:italic></span>Type ret_type;          <span style=color:#60a0b0;font-style:italic>// 显式声明的返回类型
+</span></span></span></code></pre></div></li><li><strong>包装类</strong>: <code>Function</code><div class=highlight><pre tabindex=0 style=background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=display:flex><span><span style=color:#007020;font-weight:700>class</span> <span style=color:#0e84b5;font-weight:700>Function</span> <span style=color:#666>:</span> <span style=color:#007020;font-weight:700>public</span> RelayExpr {
+</span></span><span style=display:flex><span> <span style=color:#007020;font-weight:700>public</span><span style=color:#666>:</span>
+</span></span><span style=display:flex><span>  Function(Array<span style=color:#666>&lt;</span>Var<span style=color:#666>&gt;</span> params, RelayExpr body, Type ret_type);
 </span></span><span style=display:flex><span>};
-</span></span></code></pre></div></li></ul><h4 id=3-ifnode><strong>(3) <code>IfNode</code></strong><a hidden class=anchor aria-hidden=true href=#3-ifnode>#</a></h4><ul><li><strong>继承关系</strong>: <code>RelayExprNode</code> → <code>IfNode</code></li><li><strong>功能</strong>: 条件分支控制流</li><li><strong>成员变量</strong>:<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=display:flex><span>RelayExpr cond;         <span style=color:#75715e>// 条件表达式（需为布尔标量）
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>RelayExpr true_branch;  <span style=color:#75715e>// 条件为真时执行的表达式
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>RelayExpr false_branch; <span style=color:#75715e>// 条件为假时执行的表达式
-</span></span></span></code></pre></div></li><li><strong>包装类</strong>: <code>If</code><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=display:flex><span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>If</span> <span style=color:#f92672>:</span> <span style=color:#66d9ef>public</span> RelayExpr {
-</span></span><span style=display:flex><span> <span style=color:#66d9ef>public</span><span style=color:#f92672>:</span>
+</span></span></code></pre></div></li></ul><h4 id=3-1><strong>(3) <code>IfNode</code></strong></h4><ul><li><strong>继承关系</strong>: <code>RelayExprNode</code> → <code>IfNode</code></li><li><strong>功能</strong>: 条件分支控制流</li><li><strong>成员变量</strong>:<div class=highlight><pre tabindex=0 style=background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=display:flex><span>RelayExpr cond;         <span style=color:#60a0b0;font-style:italic>// 条件表达式（需为布尔标量）
+</span></span></span><span style=display:flex><span><span style=color:#60a0b0;font-style:italic></span>RelayExpr true_branch;  <span style=color:#60a0b0;font-style:italic>// 条件为真时执行的表达式
+</span></span></span><span style=display:flex><span><span style=color:#60a0b0;font-style:italic></span>RelayExpr false_branch; <span style=color:#60a0b0;font-style:italic>// 条件为假时执行的表达式
+</span></span></span></code></pre></div></li><li><strong>包装类</strong>: <code>If</code><div class=highlight><pre tabindex=0 style=background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=display:flex><span><span style=color:#007020;font-weight:700>class</span> <span style=color:#0e84b5;font-weight:700>If</span> <span style=color:#666>:</span> <span style=color:#007020;font-weight:700>public</span> RelayExpr {
+</span></span><span style=display:flex><span> <span style=color:#007020;font-weight:700>public</span><span style=color:#666>:</span>
 </span></span><span style=display:flex><span>  If(RelayExpr cond, RelayExpr true_branch, RelayExpr false_branch);
 </span></span><span style=display:flex><span>};
-</span></span></code></pre></div></li></ul><hr><h3 id=4-复合结构节点><strong>4. 复合结构节点</strong><a hidden class=anchor aria-hidden=true href=#4-复合结构节点>#</a></h3><h4 id=1-tuplenode><strong>(1) <code>TupleNode</code></strong><a hidden class=anchor aria-hidden=true href=#1-tuplenode>#</a></h4><ul><li><strong>继承关系</strong>: <code>RelayExprNode</code> → <code>TupleNode</code></li><li><strong>功能</strong>: 存储多个表达式的元组</li><li><strong>成员变量</strong>:<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=display:flex><span>Array<span style=color:#f92672>&lt;</span>RelayExpr<span style=color:#f92672>&gt;</span> fields; <span style=color:#75715e>// 元组中的元素列表
-</span></span></span></code></pre></div></li><li><strong>包装类</strong>: <code>Tuple</code><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=display:flex><span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>Tuple</span> <span style=color:#f92672>:</span> <span style=color:#66d9ef>public</span> RelayExpr {
-</span></span><span style=display:flex><span> <span style=color:#66d9ef>public</span><span style=color:#f92672>:</span>
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>explicit</span> Tuple(Array<span style=color:#f92672>&lt;</span>RelayExpr<span style=color:#f92672>&gt;</span> fields);
+</span></span></code></pre></div></li></ul><hr><h3 id=4-复合结构节点><strong>4. 复合结构节点</strong></h3><h4 id=1-3><strong>(1) <code>TupleNode</code></strong></h4><ul><li><strong>继承关系</strong>: <code>RelayExprNode</code> → <code>TupleNode</code></li><li><strong>功能</strong>: 存储多个表达式的元组</li><li><strong>成员变量</strong>:<div class=highlight><pre tabindex=0 style=background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=display:flex><span>Array<span style=color:#666>&lt;</span>RelayExpr<span style=color:#666>&gt;</span> fields; <span style=color:#60a0b0;font-style:italic>// 元组中的元素列表
+</span></span></span></code></pre></div></li><li><strong>包装类</strong>: <code>Tuple</code><div class=highlight><pre tabindex=0 style=background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=display:flex><span><span style=color:#007020;font-weight:700>class</span> <span style=color:#0e84b5;font-weight:700>Tuple</span> <span style=color:#666>:</span> <span style=color:#007020;font-weight:700>public</span> RelayExpr {
+</span></span><span style=display:flex><span> <span style=color:#007020;font-weight:700>public</span><span style=color:#666>:</span>
+</span></span><span style=display:flex><span>  <span style=color:#007020;font-weight:700>explicit</span> Tuple(Array<span style=color:#666>&lt;</span>RelayExpr<span style=color:#666>&gt;</span> fields);
 </span></span><span style=display:flex><span>};
-</span></span></code></pre></div></li></ul><h4 id=2-tuplegetitemnode><strong>(2) <code>TupleGetItemNode</code></strong><a hidden class=anchor aria-hidden=true href=#2-tuplegetitemnode>#</a></h4><ul><li><strong>继承关系</strong>: <code>RelayExprNode</code> → <code>TupleGetItemNode</code></li><li><strong>功能</strong>: 从元组中按索引取值</li><li><strong>成员变量</strong>:<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=display:flex><span>RelayExpr tuple;        <span style=color:#75715e>// 目标元组
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>int</span> index;              <span style=color:#75715e>// 索引值（从0开始）
-</span></span></span></code></pre></div></li><li><strong>包装类</strong>: <code>TupleGetItem</code><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=display:flex><span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>TupleGetItem</span> <span style=color:#f92672>:</span> <span style=color:#66d9ef>public</span> RelayExpr {
-</span></span><span style=display:flex><span> <span style=color:#66d9ef>public</span><span style=color:#f92672>:</span>
-</span></span><span style=display:flex><span>  TupleGetItem(RelayExpr tuple, <span style=color:#66d9ef>int</span> index);
+</span></span></code></pre></div></li></ul><h4 id=2-3><strong>(2) <code>TupleGetItemNode</code></strong></h4><ul><li><strong>继承关系</strong>: <code>RelayExprNode</code> → <code>TupleGetItemNode</code></li><li><strong>功能</strong>: 从元组中按索引取值</li><li><strong>成员变量</strong>:<div class=highlight><pre tabindex=0 style=background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=display:flex><span>RelayExpr tuple;        <span style=color:#60a0b0;font-style:italic>// 目标元组
+</span></span></span><span style=display:flex><span><span style=color:#60a0b0;font-style:italic></span><span style=color:#902000>int</span> index;              <span style=color:#60a0b0;font-style:italic>// 索引值（从0开始）
+</span></span></span></code></pre></div></li><li><strong>包装类</strong>: <code>TupleGetItem</code><div class=highlight><pre tabindex=0 style=background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=display:flex><span><span style=color:#007020;font-weight:700>class</span> <span style=color:#0e84b5;font-weight:700>TupleGetItem</span> <span style=color:#666>:</span> <span style=color:#007020;font-weight:700>public</span> RelayExpr {
+</span></span><span style=display:flex><span> <span style=color:#007020;font-weight:700>public</span><span style=color:#666>:</span>
+</span></span><span style=display:flex><span>  TupleGetItem(RelayExpr tuple, <span style=color:#902000>int</span> index);
 </span></span><span style=display:flex><span>};
-</span></span></code></pre></div></li></ul><h4 id=3-letnode><strong>(3) <code>LetNode</code></strong><a hidden class=anchor aria-hidden=true href=#3-letnode>#</a></h4><ul><li><strong>继承关系</strong>: <code>RelayExprNode</code> → <code>LetNode</code></li><li><strong>功能</strong>: 绑定局部变量（类似 let-in 表达式）</li><li><strong>成员变量</strong>:<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=display:flex><span>Var var;                <span style=color:#75715e>// 绑定的变量
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>RelayExpr value;        <span style=color:#75715e>// 变量的值
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>RelayExpr body;         <span style=color:#75715e>// 变量作用域内的表达式
-</span></span></span></code></pre></div></li><li><strong>包装类</strong>: <code>Let</code><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=display:flex><span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>Let</span> <span style=color:#f92672>:</span> <span style=color:#66d9ef>public</span> RelayExpr {
-</span></span><span style=display:flex><span> <span style=color:#66d9ef>public</span><span style=color:#f92672>:</span>
+</span></span></code></pre></div></li></ul><h4 id=3-2><strong>(3) <code>LetNode</code></strong></h4><ul><li><strong>继承关系</strong>: <code>RelayExprNode</code> → <code>LetNode</code></li><li><strong>功能</strong>: 绑定局部变量（类似 let-in 表达式）</li><li><strong>成员变量</strong>:<div class=highlight><pre tabindex=0 style=background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=display:flex><span>Var var;                <span style=color:#60a0b0;font-style:italic>// 绑定的变量
+</span></span></span><span style=display:flex><span><span style=color:#60a0b0;font-style:italic></span>RelayExpr value;        <span style=color:#60a0b0;font-style:italic>// 变量的值
+</span></span></span><span style=display:flex><span><span style=color:#60a0b0;font-style:italic></span>RelayExpr body;         <span style=color:#60a0b0;font-style:italic>// 变量作用域内的表达式
+</span></span></span></code></pre></div></li><li><strong>包装类</strong>: <code>Let</code><div class=highlight><pre tabindex=0 style=background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=display:flex><span><span style=color:#007020;font-weight:700>class</span> <span style=color:#0e84b5;font-weight:700>Let</span> <span style=color:#666>:</span> <span style=color:#007020;font-weight:700>public</span> RelayExpr {
+</span></span><span style=display:flex><span> <span style=color:#007020;font-weight:700>public</span><span style=color:#666>:</span>
 </span></span><span style=display:flex><span>  Let(Var var, RelayExpr value, RelayExpr body);
 </span></span><span style=display:flex><span>};
-</span></span></code></pre></div></li></ul><hr><h4 id=节点连接方式>节点连接方式<a hidden class=anchor aria-hidden=true href=#节点连接方式>#</a></h4><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=display:flex><span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>CallNode</span> <span style=color:#f92672>:</span> <span style=color:#66d9ef>public</span> RelayExprNode {
-</span></span><span style=display:flex><span> <span style=color:#66d9ef>public</span><span style=color:#f92672>:</span>
-</span></span><span style=display:flex><span>  RelayExpr op;          <span style=color:#75715e>// 被调用的算子（ObjectRef&lt;RelayExprNode&gt;）
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  Array<span style=color:#f92672>&lt;</span>RelayExpr<span style=color:#f92672>&gt;</span> args; <span style=color:#75715e>// 参数列表（ObjectRef 的容器）
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>};
+</span></span></code></pre></div></li></ul><hr><h4 id=节点连接方式>节点连接方式</h4><div class=highlight><pre tabindex=0 style=background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=display:flex><span><span style=color:#007020;font-weight:700>class</span> <span style=color:#0e84b5;font-weight:700>CallNode</span> <span style=color:#666>:</span> <span style=color:#007020;font-weight:700>public</span> RelayExprNode {
+</span></span><span style=display:flex><span> <span style=color:#007020;font-weight:700>public</span><span style=color:#666>:</span>
+</span></span><span style=display:flex><span>  RelayExpr op;          <span style=color:#60a0b0;font-style:italic>// 被调用的算子（ObjectRef&lt;RelayExprNode&gt;）
+</span></span></span><span style=display:flex><span><span style=color:#60a0b0;font-style:italic></span>  Array<span style=color:#666>&lt;</span>RelayExpr<span style=color:#666>&gt;</span> args; <span style=color:#60a0b0;font-style:italic>// 参数列表（ObjectRef 的容器）
+</span></span></span><span style=display:flex><span><span style=color:#60a0b0;font-style:italic></span>};
 </span></span></code></pre></div><p>这里的<code>Array</code>用来储存上面的一切包装类(如Constant，用来引用节点)。
-<code>Array</code>的结构是<code>vector&lt;ObjectRef></code>.</p><h4 id=ast示例>AST示例<a hidden class=anchor aria-hidden=true href=#ast示例>#</a></h4><pre tabindex=0><code class=language-$$cpp data-lang=$$cpp>// 构建表达式：add(mul(x, 2), y)
-relay::Var x = relay::Var(&#34;x&#34;, TensorType({1}, DataType::Float(32)));
-relay::Var y = relay::Var(&#34;y&#34;, TensorType({1}, DataType::Float(32)));
-relay::Constant two = relay::Constant(runtime::NDArray::Scalar(2.0f));
-
-// 节点连接关系：
-// add_op -&gt; CallNode
-//   ├── op    : FunctionRef (指向加法算子)
-//   │   ├── op    : FunctionRef (指向乘法算子)
-//   │   ├── args[0]: VarNode (x)
-//   │   └── args[1]: ConstantNode (2)
-//   └── args[1]: VarNode (y)
-relay::Call mul = relay::Call(mul_op, {x, two});
-relay::Call add = relay::Call(add_op, {mul, y});
-</code></pre><h4 id=pass>Pass<a hidden class=anchor aria-hidden=true href=#pass>#</a></h4><p>Pass的结构和继承关系也分为节点类和引用类两支。</p><p>使用<code>PassRegistry</code>全局注册表来管理 Pass。下面依次叙述一下各个类的功能。</p><p><code>Pass</code>继承自<code>ObjectRef</code>是所有引用类的基类</p><p><code>PassNode</code>继承自<code>Object</code>是所有节点类的基类</p><p><code>PassContext</code>储存了上下文信息，如优化级别、依赖的Pass、配置等。</p><p><code>PassInfo</code>储存了Pass的名称、描述、依赖关系等信息。</p><p><code>Sequential</code>引用类</p><p><code>SequentialNode</code>储存<code>PassInfo</code>和<code>Array&lt;Pass></code>，实现了遍历、执行、解析依赖的功能。
+<code>Array</code>的结构是<code>vector&lt;ObjectRef></code>.</p><h4 id=ast示例>AST示例</h4><div class=highlight><pre tabindex=0 style=background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback><span style=display:flex><span>// 构建表达式：add(mul(x, 2), y)
+</span></span><span style=display:flex><span>relay::Var x = relay::Var(&#34;x&#34;, TensorType({1}, DataType::Float(32)));
+</span></span><span style=display:flex><span>relay::Var y = relay::Var(&#34;y&#34;, TensorType({1}, DataType::Float(32)));
+</span></span><span style=display:flex><span>relay::Constant two = relay::Constant(runtime::NDArray::Scalar(2.0f));
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>// 节点连接关系：
+</span></span><span style=display:flex><span>// add_op -&gt; CallNode
+</span></span><span style=display:flex><span>//   ├── op    : FunctionRef (指向加法算子)
+</span></span><span style=display:flex><span>//   │   ├── op    : FunctionRef (指向乘法算子)
+</span></span><span style=display:flex><span>//   │   ├── args[0]: VarNode (x)
+</span></span><span style=display:flex><span>//   │   └── args[1]: ConstantNode (2)
+</span></span><span style=display:flex><span>//   └── args[1]: VarNode (y)
+</span></span><span style=display:flex><span>relay::Call mul = relay::Call(mul_op, {x, two});
+</span></span><span style=display:flex><span>relay::Call add = relay::Call(add_op, {mul, y});
+</span></span></code></pre></div><h4 id=pass>Pass</h4><p>Pass的结构和继承关系也分为节点类和引用类两支。</p><p>使用<code>PassRegistry</code>全局注册表来管理 Pass。下面依次叙述一下各个类的功能。</p><p><code>Pass</code>继承自<code>ObjectRef</code>是所有引用类的基类</p><p><code>PassNode</code>继承自<code>Object</code>是所有节点类的基类</p><p><code>PassContext</code>储存了上下文信息，如优化级别、依赖的Pass、配置等。</p><p><code>PassInfo</code>储存了Pass的名称、描述、依赖关系等信息。</p><p><code>Sequential</code>引用类</p><p><code>SequentialNode</code>储存<code>PassInfo</code>和<code>Array&lt;Pass></code>，实现了遍历、执行、解析依赖的功能。
 在<code>include/tvm/ir/transform.h</code>中定义。</p><p><code>CreateFunctionPass</code>定义了函数级优化Pass
-<code>CreateModulePass</code>定义了模块级优化Pass</p></div><footer class=post-footer><ul class=post-tags><li><a href=https://KDZZZZZZ.github.io/tags/tvm/>TVM</a></li><li><a href=https://KDZZZZZZ.github.io/tags/compiler/>Compiler</a></li><li><a href=https://KDZZZZZZ.github.io/tags/deep-learning/>Deep Learning</a></li></ul><nav class=paginav><a class=prev href=https://KDZZZZZZ.github.io/posts/tvm%E4%BB%A3%E7%A0%81%E5%BA%93%E8%A7%A3%E6%9E%90%E5%87%BD%E6%95%B0%E5%AF%B9%E8%B1%A1%E5%8F%8A%E6%B3%A8%E5%86%8C%E5%AE%9E%E7%8E%B0/><span class=title>« Prev</span><br><span>TVM Function objects and registration implementation</span>
-</a><a class=next href=https://KDZZZZZZ.github.io/posts/welcome-to-my-blog/><span class=title>Next »</span><br><span>Welcome to My Blog</span></a></nav></footer></article></main><footer class=footer><span>&copy; 2025 <a href=https://KDZZZZZZ.github.io/>Oops</a></span> ·
-<span>Powered by
-<a href=https://gohugo.io/ rel="noopener noreferrer" target=_blank>Hugo</a> &
-        <a href=https://github.com/adityatelange/hugo-PaperMod/ rel=noopener target=_blank>PaperMod</a></span></footer><a href=#top aria-label="go to top" title="Go to Top (Alt + G)" class=top-link id=top-link accesskey=g><svg viewBox="0 0 12 6" fill="currentcolor"><path d="M12 6H0l6-6z"/></svg>
-</a><script>let menu=document.getElementById("menu");menu&&(menu.scrollLeft=localStorage.getItem("menu-scroll-position"),menu.onscroll=function(){localStorage.setItem("menu-scroll-position",menu.scrollLeft)}),document.querySelectorAll('a[href^="#"]').forEach(e=>{e.addEventListener("click",function(e){e.preventDefault();var t=this.getAttribute("href").substr(1);window.matchMedia("(prefers-reduced-motion: reduce)").matches?document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView():document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView({behavior:"smooth"}),t==="top"?history.replaceState(null,null," "):history.pushState(null,null,`#${t}`)})})</script><script>var mybutton=document.getElementById("top-link");window.onscroll=function(){document.body.scrollTop>800||document.documentElement.scrollTop>800?(mybutton.style.visibility="visible",mybutton.style.opacity="1"):(mybutton.style.visibility="hidden",mybutton.style.opacity="0")}</script><script>document.getElementById("theme-toggle").addEventListener("click",()=>{document.body.className.includes("dark")?(document.body.classList.remove("dark"),localStorage.setItem("pref-theme","light")):(document.body.classList.add("dark"),localStorage.setItem("pref-theme","dark"))})</script><script>document.querySelectorAll("pre > code").forEach(e=>{const n=e.parentNode.parentNode,t=document.createElement("button");t.classList.add("copy-code"),t.innerHTML="copy";function s(){t.innerHTML="copied!",setTimeout(()=>{t.innerHTML="copy"},2e3)}t.addEventListener("click",t=>{if("clipboard"in navigator){navigator.clipboard.writeText(e.textContent),s();return}const n=document.createRange();n.selectNodeContents(e);const o=window.getSelection();o.removeAllRanges(),o.addRange(n);try{document.execCommand("copy"),s()}catch{}o.removeRange(n)}),n.classList.contains("highlight")?n.appendChild(t):n.parentNode.firstChild==n||(e.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName=="TABLE"?e.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(t):e.parentNode.appendChild(t))})</script></body></html>
+<code>CreateModulePass</code>定义了模块级优化Pass</p></article><div class="mt-12 flex gap-4"><button class="group relative px-8 py-3 rounded-full bg-gradient-to-r from-cyan-300 to-green-300 text-slate-900 font-bold text-sm tracking-wider uppercase shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 overflow-hidden" onclick='window.location.href="/posts"'>
+<span class="relative z-10 flex items-center gap-2">Back to Blogs
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="transition-transform group-hover:-translate-x-1 rotate-180"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span><div class="absolute inset-0 bg-white/20 group-hover:bg-white/40 transition-colors"></div></button></div></div></div></main><footer class="w-full py-6 text-center text-slate-400 text-xs uppercase tracking-widest">&copy; 2024 OOPS.BLOG - All Rights Reserved</footer><script>const themeToggleBtn=document.getElementById("theme-toggle"),themeIconSun=document.getElementById("theme-icon-sun"),themeIconMoon=document.getElementById("theme-icon-moon");function updateThemeUI(e){e?(document.documentElement.classList.add("dark"),themeIconMoon.classList.remove("hidden"),themeIconSun.classList.add("hidden")):(document.documentElement.classList.remove("dark"),themeIconMoon.classList.add("hidden"),themeIconSun.classList.remove("hidden"))}updateThemeUI(!!(localStorage.theme==="dark"||!("theme"in localStorage)&&window.matchMedia("(prefers-color-scheme: dark)").matches)),themeToggleBtn.addEventListener("click",()=>{document.documentElement.classList.contains("dark")?(localStorage.theme="light",updateThemeUI(!1)):(localStorage.theme="dark",updateThemeUI(!0))})</script></body></html>
